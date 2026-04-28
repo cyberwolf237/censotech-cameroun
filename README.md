@@ -4,7 +4,7 @@
 **Étudiant :** KAMGAING FOTSO Herman Gaetan  
 **Matricule :** 24H2030  
 **Unité d'Enseignement :** INF232  
-**Année académique :** 2024 / 2025  
+**Année académique :** 2025 / 2026  
 
 ---
 
