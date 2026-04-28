@@ -8,7 +8,7 @@
 
 ---
 
-## 📌 Description du projet
+## ���� Description du projet
 
 CensoTech Cameroun est une application web de collecte et d'analyse descriptive des données éducatives au Cameroun. Elle permet de recenser les établissements scolaires (primaires, secondaires), d'enregistrer leurs ressources (enseignants, élèves, infrastructure) et de produire des statistiques descriptives automatiques.
 
@@ -26,6 +26,7 @@ CensoTech Cameroun est une application web de collecte et d'analyse descriptive 
 - Vue par région avec code couleur
 - Tableau de toutes les fiches collectées
 - Export des données en CSV et JSON
+- Synchronisation multi-appareils avec Vercel
 
 ---
 
@@ -40,13 +41,22 @@ CensoTech Cameroun est une application web de collecte et d'analyse descriptive 
 
 ## 🚀 Déploiement
 
-1. Jai créer un compte GitHub sur https://github.com
-2. Jai créer un dépôt nommé `censotech-cameroun`
-3. Jai uploader les 3 fichiers du projet
-4. Jai créer un compte Vercel sur https://vercel.com avec GitHub
-5. jai pour finir Importer le dépôt et cliquer sur  Deploy
+1. Créer un compte GitHub sur https://github.com
+2. Créer un dépôt nommé `censotech-cameroun`
+3. Uploader les 3 fichiers du projet
+4. Créer un compte Vercel sur https://vercel.com avec GitHub
+5. Importer le dépôt et cliquer Deploy
 
 Lien : https://censotech-cameroun.vercel.app
+
+---
+
+## 📝 Améliorations récentes (2025)
+
+- ✅ Pourcentages réinitialisés à zéro au démarrage
+- ✅ Menu hamburger mobile (navigation Android)
+- ✅ Tous les KPI recalculés depuis localStorage
+- ✅ Année académique mise à jour : 2025/2026
 
 ---
 
