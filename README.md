@@ -40,14 +40,14 @@ CensoTech Cameroun est une application web de collecte et d'analyse descriptive 
 
 ## 🚀 Déploiement
 
-1. Créer un compte GitHub sur https://github.com
-2. Créer un dépôt nommé `censotech-cameroun`
-3. Uploader les 3 fichiers du projet
-4. Créer un compte Vercel sur https://vercel.com avec GitHub
-5. Importer le dépôt et cliquer Deploy
+1. Jai créer un compte GitHub sur https://github.com
+2. Jai créer un dépôt nommé `censotech-cameroun`
+3. Jai uploader les 3 fichiers du projet
+4. Jai créer un compte Vercel sur https://vercel.com avec GitHub
+5. jai pour finir Importer le dépôt et cliquer sur  Deploy
 
 Lien : https://censotech-cameroun.vercel.app
 
 ---
 
-*Université de Yaoundé — INF232 — 2024/2025*
+*Université de Yaoundé — INF232 — 2025/2026*
