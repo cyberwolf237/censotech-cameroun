@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CensoTech Cameroun — Recensement Éducatif</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-50:  #E1F5EE;
+      --green-100: #9FE1CB;
+      --green-400: #1D9E75;
+      --green-600: #0F6E56;
+      --green-800: #085041;
+      --amber-400: #EF9F27;
+      --amber-bg:  #FAEEDA;
+      --red-400:   #E24B4A;
+      --red-bg:    #FCEBEB;
+      --bg:        #F7F8F6;
+      --surface:   #FFFFFF;
+      --border:    rgba(0,0,0,0.08);
+      --text:      #1A1A1A;
+      --muted:     #6B7280;
+      --radius:    10px;
+      --radius-lg: 14px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────── */
+    .layout { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 230px;
+      flex-shrink: 0;
+      background: var(--green-600);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 1rem;
+      gap: 6px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      padding: 0 0.5rem 1.25rem;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      margin-bottom: 0.5rem;
+    }
+    .brand-name { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: -0.3px; }
+    .brand-sub  { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      color: rgba(255,255,255,0.7);
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+      user-select: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .nav-item.active { background: rgba(255,255,255,0.18); color: #fff; }
+    .nav-icon { width: 18px; text-align: center; font-size: 15px; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.15);
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ── MAIN ───────────────────────────────── */
+    .main { flex: 1; overflow-y: auto; }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.9rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .topbar-title { font-size: 15px; font-weight: 600; }
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green-50);
+      color: var(--green-600);
+      font-size: 11.5px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green-400);
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+    .content { padding: 1.75rem 2rem; }
+
+    /* ── SECTIONS ───────────────────────────── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── STATS CARDS ────────────────────────── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+    }
+    .stat-label { font-size: 11.5px; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.3px; }
+    .stat-value { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; color: var(--text); }
+    .stat-delta { font-size: 11px; margin-top: 4px; color: var(--green-600); }
+    .stat-delta.warn { color: var(--amber-400); }
+    .stat-delta.bad  { color: var(--red-400); }
+
+    /* ── CARDS ──────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card-title { font-size: 14px; font-weight: 600; margin-bottom: 1rem; color: var(--text); }
+
+    /* ── FORM ───────────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: 0.3px; text-transform: uppercase; }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: var(--green-400); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    .btn-primary {
+      grid-column: 1 / -1;
+      background: var(--green-400);
+      color: #fff;
+      border: none;
+      padding: 11px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 4px;
+    }
+    .btn-primary:hover { background: var(--green-600); }
+
+    .alert-success {
+      grid-column: 1 / -1;
+      background: var(--green-50);
+      color: var(--green-600);
+      border: 1px solid var(--green-100);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      display: none;
+    }
+
+    /* ── CHART GRID ─────────────────────────── */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 1.25rem;
+    }
+    .chart-wrap { position: relative; height: 220px; }
+
+    /* ── BAR CHART CUSTOM ───────────────────── */
+    .bar-list { display: flex; flex-direction: column; gap: 9px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; }
+    .bar-name { font-size: 12px; color: var(--muted); width: 90px; text-align: right; flex-shrink: 0; }
+    .bar-track { flex: 1; height: 22px; background: var(--bg); border-radius: 5px; overflow: hidden; }
+    .bar-fill {
+      height: 100%;
+      border-radius: 5px;
+      background: var(--green-400);
+      display: flex;
+      align-items: center;
+      padding-left: 8px;
+      transition: width 0.7s cubic-bezier(.4,0,.2,1);
+    }
+    .bar-fill span { font-size: 11px; color: #fff; font-weight: 500; font-family: 'DM Mono', monospace; }
+
+    /* ── REGION GRID ────────────────────────── */
+    .region-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .region-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+    }
+    .region-name { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+    .region-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .region-row strong { color: var(--text); }
+    .progress-bar { height: 5px; background: var(--bg); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; transition: width 0.7s ease; }
+
+    /* ── STATUS PILL ────────────────────────── */
+    .pill {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .pill-green { background: var(--green-50); color: var(--green-600); }
+    .pill-amber { background: var(--amber-bg); color: #854F0B; }
+    .pill-red   { background: var(--red-bg); color: #A32D2D; }
+
+    /* ── TABLE ──────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+    td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg); }
+
+    /* ── EXPORT ROW ─────────────────────────── */
+    .export-row { display: flex; gap: 8px; margin-top: 1rem; }
+    .btn-sec {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-sec:hover { background: var(--bg); }
+
+    /* ── RESPONSIVE ─────────────────────────── */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+      .chart-grid { grid-template-columns: 1fr; }
+      .region-grid { grid-template-columns: 1fr 1fr; }
+      .content { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-name">CensoTech</div>
+      <div class="brand-sub">Recensement Éducatif Cameroun</div>
+    </div>
+
+    <div class="nav-item active" onclick="goTo('accueil', this)">
+      <span class="nav-icon">🏠</span> Accueil
+    </div>
+    <div class="nav-item" onclick="goTo('collecte', this)">
+      <span class="nav-icon">📋</span> Collecte
+    </div>
+    <div class="nav-item" onclick="goTo('stats', this)">
+      <span class="nav-icon">📊</span> Statistiques
+    </div>
+    <div class="nav-item" onclick="goTo('regions', this)">
+      <span class="nav-icon">🗺️</span> Régions
+    </div>
+    <div class="nav-item" onclick="goTo('donnees', this)">
+      <span class="nav-icon">🗂️</span> Données
+    </div>
+    <div class="nav-item" onclick="goTo('export', this)">
+      <span class="nav-icon">📤</span> Exporter
+    </div>
+
+    <div class="sidebar-footer">
+      INF232 — TP Collecte<br>Données en ligne<br>© 2025 CensoTech
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Tableau de bord</div>
+      <div class="live-badge"><div class="live-dot"></div> Données en direct</div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══ ACCUEIL ══ -->
+      <div id="sec-accueil" class="section active">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Écoles recensées</div>
+            <div class="stat-value" id="kpi-ecoles">247</div>
+            <div class="stat-delta">↑ +12 cette semaine</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Enseignants</div>
+            <div class="stat-value" id="kpi-ens">1 840</div>
+            <div class="stat-delta">↑ +38 ce mois</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Élèves enregistrés</div>
+            <div class="stat-value" id="kpi-eleves">52 340</div>
+            <div class="stat-delta">↑ +1 200 ce mois</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Régions couvertes</div>
+            <div class="stat-value">10 / 10</div>
+            <div class="stat-delta">✓ Couverture nationale</div>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="card">
+            <div class="card-title">Établissements par région</div>
+            <div class="bar-list" id="bar-regions"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Besoins les plus signalés</div>
+            <div class="bar-list" id="bar-besoins"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Indicateurs nationaux</div>
+          <div class="stat-grid" style="margin:0;">
+            <div class="stat-card">
+              <div class="stat-label">Ratio élèves/enseignant</div>
+              <div class="stat-value">28.4</div>
+              <div class="stat-delta warn">⚠ Norme ONU: 25</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Accès eau potable</div>
+              <div class="stat-value">61%</div>
+              <div class="stat-delta warn">⚠ Objectif: 100%</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Écoles électrifiées</div>
+              <div class="stat-value">43%</div>
+              <div class="stat-delta bad">✗ Critique</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Taux de recensement</div>
+              <div class="stat-value">78%</div>
+              <div class="stat-delta">↑ En cours</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ COLLECTE ══ -->
+      <div id="sec-collecte" class="section">
+        <div class="card">
+          <div class="card-title">Nouvelle fiche d'établissement scolaire</div>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Nom de l'établissement *</label>
+              <input type="text" id="f-nom" placeholder="Ex: École Primaire Publique de Bafoussam Centre" />
+            </div>
+            <div class="form-group">
+              <label>Région *</label>
+              <select id="f-region">
+                <option value="">-- Choisir --</option>
+                <option>Centre</option><option>Littoral</option><option>Ouest</option>
+                <option>Nord-Ouest</option><option>Sud-Ouest</option><option>Adamaoua</option>
+                <option>Nord</option><option>Extrême-Nord</option><option>Est</option><option>Sud</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Département</label>
+              <input type="text" id="f-dept" placeholder="Ex: Mfoundi, Wouri..." />
+            </div>
+            <div class="form-group">
+              <label>Type d'établissement *</label>
+              <select id="f-type">
+                <option>Maternelle publique</option><option>Maternelle privée</option>
+                <option>Primaire public</option><option>Primaire privé</option>
+                <option>Secondaire public</option><option>Secondaire privé</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Milieu</label>
+              <select id="f-milieu">
+                <option>Urbain</option><option>Semi-urbain</option><option>Rural</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Nombre d'enseignants *</label>
+              <input type="number" id="f-ens" placeholder="Ex: 12" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Nombre d'élèves *</label>
+              <input type="number" id="f-eleves" placeholder="Ex: 340" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Salles de classe</label>
+              <input type="number" id="f-salles" placeholder="Ex: 8" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Tables-bancs disponibles</label>
+              <input type="number" id="f-bancs" placeholder="Ex: 150" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Accès eau potable</label>
+              <select id="f-eau"><option>Oui</option><option>Non</option><option>Partiel</option></select>
+            </div>
+            <div class="form-group">
+              <label>Électricité</label>
+              <select id="f-elec"><option>Oui</option><option>Non</option><option>Partiel</option></select>
+            </div>
+            <div class="form-group">
+              <label>Latrines fonctionnelles</label>
+              <select id="f-latrines"><option>Oui</option><option>Non</option><option>Partiel</option></select>
+            </div>
+            <div class="form-group">
+              <label>Bibliothèque / Médiathèque</label>
+              <select id="f-biblio"><option>Oui</option><option>Non</option></select>
+            </div>
+            <div class="form-group full">
+              <label>Besoins prioritaires (décrivez les manques)</label>
+              <textarea id="f-besoins" placeholder="Ex: Manque de tables-bancs, absence de latrines pour filles, besoin de manuels en classe de 5e..."></textarea>
+            </div>
+            <div class="form-group full">
+              <label>Nom du recenseur</label>
+              <input type="text" id="f-recenseur" placeholder="Votre nom complet" />
+            </div>
+            <button class="btn-primary" onclick="submitFiche()">✓ Enregistrer la fiche</button>
+            <div class="alert-success" id="alert-ok">✓ Fiche enregistrée avec succès ! Visible dans l'onglet Données.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ STATISTIQUES ══ -->
+      <div id="sec-stats" class="section">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Moyenne élèves/école</div>
+            <div class="stat-value" id="stat-avg-eleves">212</div>
+            <div class="stat-delta">Calculé en temps réel</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Moyenne enseignants/école</div>
+            <div class="stat-value" id="stat-avg-ens">7.4</div>
+            <div class="stat-delta">Sur les fiches soumises</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">% Accès eau potable</div>
+            <div class="stat-value" id="stat-eau">61%</div>
+            <div class="stat-delta warn">Sous l'objectif</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">% Électrifiées</div>
+            <div class="stat-value" id="stat-elec">43%</div>
+            <div class="stat-delta bad">Critique</div>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="card">
+            <div class="card-title">Répartition par type d'établissement</div>
+            <div class="chart-wrap"><canvas id="chartType"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Répartition par milieu (urbain/rural)</div>
+            <div class="chart-wrap"><canvas id="chartMilieu"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Analyse descriptive — fiches soumises</div>
+          <div id="analyse-table">
+            <p style="color:var(--muted); font-size:13px;">Soumettez des fiches dans l'onglet Collecte pour voir l'analyse apparaître ici automatiquement.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ RÉGIONS ══ -->
+      <div id="sec-regions" class="section">
+        <div class="region-grid" id="region-grid"></div>
+      </div>
+
+      <!-- ══ DONNÉES ══ -->
+      <div id="sec-donnees" class="section">
+        <div class="card">
+          <div class="card-title">Toutes les fiches collectées</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th><th>Établissement</th><th>Région</th><th>Type</th>
+                  <th>Élèves</th><th>Ens.</th><th>Eau</th><th>Électricité</th><th>Statut</th>
+                </tr>
+              </thead>
+              <tbody id="data-tbody">
+                <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem;">Aucune fiche pour l'instant — allez dans Collecte pour ajouter des données.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EXPORT ══ -->
+      <div id="sec-export" class="section">
+        <div class="card">
+          <div class="card-title">Exporter les données collectées</div>
+          <p style="font-size:13px; color:var(--muted); margin-bottom:1.25rem;">
+            Téléchargez toutes les fiches soumises dans le format de votre choix.
+          </p>
+          <div class="export-row">
+            <button class="btn-sec" onclick="exportCSV()">📥 Exporter en CSV</button>
+            <button class="btn-sec" onclick="exportJSON()">📥 Exporter en JSON</button>
+            <button class="btn-sec" onclick="printReport()">🖨️ Imprimer le rapport</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Rapport de synthèse nationale</div>
+          <div id="report-content" style="font-size:13px; line-height:1.8; color:var(--text);">
+            <!-- Generated dynamically -->
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+// ══════════════════════════════════════════
+//  DONNÉES & ÉTAT
+// ══════════════════════════════════════════
+const STORAGE_KEY = 'censotech_fiches';
+let fiches = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+const regionsData = [
+  { name: 'Centre',       ecoles: 42, taux: 88, color: '#1D9E75' },
+  { name: 'Littoral',     ecoles: 36, taux: 75, color: '#5DCAA5' },
+  { name: 'Ouest',        ecoles: 30, taux: 70, color: '#9FE1CB' },
+  { name: 'Nord-Ouest',   ecoles: 22, taux: 58, color: '#EF9F27' },
+  { name: 'Sud-Ouest',    ecoles: 20, taux: 55, color: '#EF9F27' },
+  { name: 'Adamaoua',     ecoles: 18, taux: 45, color: '#E24B4A' },
+  { name: 'Nord',         ecoles: 17, taux: 42, color: '#E24B4A' },
+  { name: 'Extrême-Nord', ecoles: 19, taux: 38, color: '#A32D2D' },
+  { name: 'Est',          ecoles: 13, taux: 30, color: '#A32D2D' },
+  { name: 'Sud',          ecoles: 15, taux: 50, color: '#EF9F27' },
+];
+
+const barBesoinsData = [
+  { label: 'Tables-bancs',  pct: 78, color: '#1D9E75' },
+  { label: 'Latrines',      pct: 64, color: '#1D9E75' },
+  { label: 'Manuels',       pct: 55, color: '#EF9F27' },
+  { label: 'Électricité',   pct: 47, color: '#EF9F27' },
+  { label: 'Eau potable',   pct: 36, color: '#E24B4A' },
+];
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+const titles = {
+  accueil: 'Tableau de bord',
+  collecte: 'Collecte de données',
+  stats:    'Statistiques descriptives',
+  regions:  'Carte des régions',
+  donnees:  'Données collectées',
+  export:   'Export & Rapports',
+};
+
+function goTo(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('page-title').textContent = titles[id];
+  if (id === 'stats')   initCharts();
+  if (id === 'donnees') renderTable();
+  if (id === 'export')  renderReport();
+  if (id === 'stats')   updateStats();
+}
+
+// ══════════════════════════════════════════
+//  INIT — barres statiques
+// ══════════════════════════════════════════
+function initBars() {
+  const regEl = document.getElementById('bar-regions');
+  const top5 = [...regionsData].sort((a,b) => b.ecoles - a.ecoles).slice(0,5);
+  regEl.innerHTML = top5.map(r =>
+    `<div class="bar-row">
+       <div class="bar-name">${r.name}</div>
+       <div class="bar-track"><div class="bar-fill" style="width:${Math.round(r.ecoles/42*100)}%; background:${r.color}"><span>${r.ecoles}</span></div></div>
+     </div>`
+  ).join('');
+
+  const bEl = document.getElementById('bar-besoins');
+  bEl.innerHTML = barBesoinsData.map(b =>
+    `<div class="bar-row">
+       <div class="bar-name">${b.label}</div>
+       <div class="bar-track"><div class="bar-fill" style="width:${b.pct}%; background:${b.color}"><span>${b.pct}%</span></div></div>
+     </div>`
+  ).join('');
+
+  renderRegions();
+}
+
+function renderRegions() {
+  const grid = document.getElementById('region-grid');
+  grid.innerHTML = regionsData.map(r => {
+    const pill = r.taux >= 70 ? 'pill-green' : r.taux >= 45 ? 'pill-amber' : 'pill-red';
+    const lab  = r.taux >= 70 ? 'Bonne couverture' : r.taux >= 45 ? 'Couverture partielle' : 'Zone critique';
+    return `<div class="region-card">
+      <div class="region-name">${r.name}</div>
+      <div class="region-row"><span>Établissements</span><strong>${r.ecoles}</strong></div>
+      <div class="region-row"><span>Couverture estimée</span><strong>${r.taux}%</strong></div>
+      <div class="region-row"><span>Statut</span><span class="pill ${pill}">${lab}</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${r.taux}%; background:${r.color}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  FORMULAIRE — soumettre une fiche
+// ══════════════════════════════════════════
+function submitFiche() {
+  const nom = document.getElementById('f-nom').value.trim();
+  const region = document.getElementById('f-region').value;
+  if (!nom) { alert('Veuillez entrer le nom de l\'établissement.'); return; }
+  if (!region) { alert('Veuillez sélectionner une région.'); return; }
+
+  const fiche = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString('fr-FR'),
+    nom,
+    region,
+    dept:       document.getElementById('f-dept').value,
+    type:       document.getElementById('f-type').value,
+    milieu:     document.getElementById('f-milieu').value,
+    ens:        parseInt(document.getElementById('f-ens').value) || 0,
+    eleves:     parseInt(document.getElementById('f-eleves').value) || 0,
+    salles:     parseInt(document.getElementById('f-salles').value) || 0,
+    bancs:      parseInt(document.getElementById('f-bancs').value) || 0,
+    eau:        document.getElementById('f-eau').value,
+    elec:       document.getElementById('f-elec').value,
+    latrines:   document.getElementById('f-latrines').value,
+    biblio:     document.getElementById('f-biblio').value,
+    besoins:    document.getElementById('f-besoins').value,
+    recenseur:  document.getElementById('f-recenseur').value,
+  };
+
+  fiches.push(fiche);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(fiches));
+
+  // Mise à jour KPI
+  const addEl = (id, n) => {
+    const el = document.getElementById(id);
+    const cur = parseInt(el.textContent.replace(/\s/g,''));
+    el.textContent = (cur + n).toLocaleString('fr-FR');
+  };
+  addEl('kpi-ecoles', 1);
+  addEl('kpi-ens',    fiche.ens);
+  addEl('kpi-eleves', fiche.eleves);
+
+  // Reset form
+  ['f-nom','f-dept','f-ens','f-eleves','f-salles','f-bancs','f-besoins','f-recenseur'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-region').value = '';
+
+  const ok = document.getElementById('alert-ok');
+  ok.style.display = 'block';
+  setTimeout(() => ok.style.display = 'none', 4000);
+}
+
+// ══════════════════════════════════════════
+//  TABLEAU DES DONNÉES
+// ══════════════════════════════════════════
+function renderTable() {
+  const tbody = document.getElementById('data-tbody');
+  if (fiches.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem;">Aucune fiche soumise pour l\'instant.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = fiches.slice().reverse().map((f, i) => {
+    const pillEau  = f.eau === 'Oui' ? 'pill-green' : f.eau === 'Partiel' ? 'pill-amber' : 'pill-red';
+    const pillElec = f.elec === 'Oui' ? 'pill-green' : f.elec === 'Partiel' ? 'pill-amber' : 'pill-red';
+    return `<tr>
+      <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">${fiches.length - i}</td>
+      <td style="font-weight:500">${f.nom}</td>
+      <td>${f.region}</td>
+      <td><span class="pill pill-green" style="font-size:10px;">${f.type}</span></td>
+      <td style="font-family:'DM Mono',monospace">${f.eleves.toLocaleString('fr-FR')}</td>
+      <td style="font-family:'DM Mono',monospace">${f.ens}</td>
+      <td><span class="pill ${pillEau}">${f.eau}</span></td>
+      <td><span class="pill ${pillElec}">${f.elec}</span></td>
+      <td><span class="pill pill-green">Soumise</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  STATISTIQUES
+// ══════════════════════════════════════════
+function updateStats() {
+  if (fiches.length === 0) return;
+  const avgEl = fiches.reduce((s,f) => s + f.eleves, 0) / fiches.length;
+  const avgEn = fiches.reduce((s,f) => s + f.ens, 0) / fiches.length;
+  const pctEau  = Math.round(fiches.filter(f => f.eau === 'Oui').length / fiches.length * 100);
+  const pctElec = Math.round(fiches.filter(f => f.elec === 'Oui').length / fiches.length * 100);
+
+  document.getElementById('stat-avg-eleves').textContent = Math.round(avgEl);
+  document.getElementById('stat-avg-ens').textContent    = avgEn.toFixed(1);
+  document.getElementById('stat-eau').textContent        = pctEau + '%';
+  document.getElementById('stat-elec').textContent       = pctElec + '%';
+
+  // Analyse descriptive
+  const totalEleves = fiches.reduce((s,f) => s+f.eleves, 0);
+  const totalEns    = fiches.reduce((s,f) => s+f.ens, 0);
+  const ratio       = totalEns > 0 ? (totalEleves / totalEns).toFixed(1) : 'N/A';
+
+  document.getElementById('analyse-table').innerHTML = `
+    <table>
+      <thead><tr><th>Indicateur</th><th>Valeur</th><th>Interprétation</th></tr></thead>
+      <tbody>
+        <tr><td>Fiches soumises</td><td>${fiches.length}</td><td>—</td></tr>
+        <tr><td>Total élèves (fiches)</td><td>${totalEleves.toLocaleString('fr-FR')}</td><td>—</td></tr>
+        <tr><td>Total enseignants (fiches)</td><td>${totalEns.toLocaleString('fr-FR')}</td><td>—</td></tr>
+        <tr><td>Ratio élèves/enseignant</td><td>${ratio}</td><td>${ratio > 25 ? '⚠ Supérieur à la norme ONU (25)' : '✓ Conforme'}</td></tr>
+        <tr><td>Moy. élèves/école</td><td>${Math.round(avgEl)}</td><td>—</td></tr>
+        <tr><td>% Accès eau potable</td><td>${pctEau}%</td><td>${pctEau < 80 ? '⚠ Insuffisant' : '✓ Bon'}</td></tr>
+        <tr><td>% Électrification</td><td>${pctElec}%</td><td>${pctElec < 50 ? '✗ Critique' : '⚠ Partiel'}</td></tr>
+      </tbody>
+    </table>`;
+}
+
+// ══════════════════════════════════════════
+//  CHARTS (Chart.js)
+// ══════════════════════════════════════════
+let chartTypeInst = null;
+let chartMilieuInst = null;
+
+function initCharts() {
+  const types = {};
+  const milieux = { Urbain: 0, 'Semi-urbain': 0, Rural: 0 };
+
+  if (fiches.length > 0) {
+    fiches.forEach(f => {
+      types[f.type] = (types[f.type] || 0) + 1;
+      milieux[f.milieu] = (milieux[f.milieu] || 0) + 1;
+    });
+  } else {
+    // Données de démonstration
+    types['Primaire public'] = 120;
+    types['Primaire privé'] = 48;
+    types['Secondaire public'] = 55;
+    types['Secondaire privé'] = 24;
+    milieux.Urbain = 98; milieux['Semi-urbain'] = 72; milieux.Rural = 77;
+  }
+
+  const COLORS = ['#1D9E75','#5DCAA5','#EF9F27','#E24B4A','#378ADD','#9FE1CB'];
+
+  if (chartTypeInst) chartTypeInst.destroy();
+  if (chartMilieuInst) chartMilieuInst.destroy();
+
+  chartTypeInst = new Chart(document.getElementById('chartType'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(types),
+      datasets: [{ data: Object.values(types), backgroundColor: COLORS, borderWidth: 0 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'DM Sans', size: 11 }, boxWidth: 12, padding: 10 } } } }
+  });
+
+  chartMilieuInst = new Chart(document.getElementById('chartMilieu'), {
+    type: 'pie',
+    data: {
+      labels: Object.keys(milieux),
+      datasets: [{ data: Object.values(milieux), backgroundColor: ['#1D9E75','#EF9F27','#5DCAA5'], borderWidth: 0 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'DM Sans', size: 11 }, boxWidth: 12, padding: 10 } } } }
+  });
+}
+
+// ══════════════════════════════════════════
+//  EXPORT
+// ══════════════════════════════════════════
+function exportCSV() {
+  if (fiches.length === 0) { alert('Aucune fiche à exporter. Ajoutez des données d\'abord.'); return; }
+  const headers = ['ID','Date','Nom','Région','Département','Type','Milieu','Enseignants','Élèves','Salles','Tables-bancs','Eau','Électricité','Latrines','Bibliothèque','Besoins','Recenseur'];
+  const rows = fiches.map(f => [f.id, f.date, `"${f.nom}"`, f.region, f.dept, f.type, f.milieu, f.ens, f.eleves, f.salles, f.bancs, f.eau, f.elec, f.latrines, f.biblio, `"${f.besoins}"`, f.recenseur]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  dl('censotech_donnees.csv', 'text/csv', csv);
+}
+
+function exportJSON() {
+  if (fiches.length === 0) { alert('Aucune fiche à exporter.'); return; }
+  dl('censotech_donnees.json', 'application/json', JSON.stringify(fiches, null, 2));
+}
+
+function dl(name, type, content) {
+  const a = document.createElement('a');
+  a.href = 'data:' + type + ';charset=utf-8,' + encodeURIComponent(content);
+  a.download = name;
+  a.click();
+}
+
+function printReport() { window.print(); }
+
+function renderReport() {
+  const total = fiches.length;
+  const totalEl = fiches.reduce((s,f)=>s+f.eleves,0);
+  const totalEn = fiches.reduce((s,f)=>s+f.ens,0);
+  const ratio = totalEn > 0 ? (totalEl/totalEn).toFixed(1) : 'N/A';
+  const pctEau = total > 0 ? Math.round(fiches.filter(f=>f.eau==='Oui').length/total*100) : 61;
+  const pctElec = total > 0 ? Math.round(fiches.filter(f=>f.elec==='Oui').length/total*100) : 43;
+
+  document.getElementById('report-content').innerHTML = `
+    <h3 style="font-size:15px;font-weight:600;margin-bottom:.75rem;">RAPPORT DE SYNTHÈSE — CensoTech Cameroun</h3>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:1rem;">Généré le ${new Date().toLocaleDateString('fr-FR', {year:'numeric',month:'long',day:'numeric'})}</p>
+    <p><strong>Fiches collectées via la plateforme :</strong> ${total}</p>
+    <p><strong>Total élèves recensés :</strong> ${totalEl.toLocaleString('fr-FR')}</p>
+    <p><strong>Total enseignants recensés :</strong> ${totalEn.toLocaleString('fr-FR')}</p>
+    <p><strong>Ratio élèves/enseignant :</strong> ${ratio} ${ratio > 25 ? '(⚠ supérieur à la norme ONU de 25)' : '(✓ conforme)'}</p>
+    <p style="margin-top:.75rem;"><strong>Accès eau potable :</strong> ${pctEau}% des établissements — objectif 100%</p>
+    <p><strong>Électrification :</strong> ${pctElec}% des établissements — zone critique</p>
+    <p style="margin-top:.75rem;color:var(--muted);font-size:12px;">Ce rapport est généré automatiquement à partir des données soumises via le formulaire de collecte. Il peut être imprimé ou exporté en CSV/JSON.</p>`;
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  initBars();
+});
+</script>
+</body>
+</html>
