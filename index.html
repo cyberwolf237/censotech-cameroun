@@ -12,6 +12,9 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -46,7 +49,6 @@
       overflow-x: hidden;
     }
 
-    /* ══ ANIMATED BACKGROUND ══ */
     body::before {
       content: '';
       position: fixed;
@@ -66,10 +68,8 @@
       50% { transform: translate(-50px, -50px); }
     }
 
-    /* ══ LAYOUT ══ */
     .layout { display: flex; min-height: 100vh; }
 
-    /* ══ SIDEBAR ══ */
     .sidebar {
       width: 260px;
       flex-shrink: 0;
@@ -134,17 +134,6 @@
       overflow: hidden;
     }
 
-    .nav-item::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: rgba(255,255,255,0.1);
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.3s ease;
-      z-index: -1;
-    }
-
     .nav-item:hover {
       background: rgba(255,255,255,0.15);
       color: #fff;
@@ -191,7 +180,6 @@
       font-weight: 600;
     }
 
-    /* ══ DRAWER (Mobile) ══ */
     .drawer-overlay {
       display: none;
       position: fixed;
@@ -209,7 +197,6 @@
       .drawer-overlay.active { display: block; }
     }
 
-    /* ══ TOPBAR ══ */
     .topbar {
       background: rgba(255,255,255,0.8);
       backdrop-filter: blur(10px);
@@ -292,19 +279,21 @@
       50% { opacity: 0.4; transform: scale(1.2); }
     }
 
-    /* ══ MAIN ══ */
     .main {
       flex: 1;
       overflow-y: auto;
       scroll-behavior: smooth;
+      display: flex;
+      flex-direction: column;
     }
 
     .content {
       padding: 2rem;
       animation: fadeIn 0.6s ease;
+      flex: 1;
+      overflow-y: auto;
     }
 
-    /* ══ SECTIONS ══ */
     .section {
       display: none;
       animation: fadeIn 0.5s ease;
@@ -327,7 +316,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ══ STAT CARDS ══ */
     .stat-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -396,7 +384,6 @@
     .stat-delta.warn { color: var(--warning); }
     .stat-delta.bad { color: var(--danger); }
 
-    /* ══ CARDS ══ */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -433,7 +420,6 @@
       border-radius: 3px;
     }
 
-    /* ══ FORMS ══ */
     .form-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -500,14 +486,6 @@
       overflow: hidden;
     }
 
-    .btn-primary::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, transparent, rgba(255,255,255,0.2), transparent);
-      transform: translateX(-100%);
-    }
-
     .btn-primary:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(29, 158, 117, 0.3);
@@ -532,7 +510,21 @@
 
     .alert-success.show { display: block; }
 
-    /* ══ CHARTS ══ */
+    .alert-error {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #FCEBEB 0%, rgba(226, 75, 74, 0.1) 100%);
+      color: var(--danger);
+      border: 1.5px solid #FCEBEB;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      display: none;
+      animation: slideDown 0.4s ease;
+    }
+
+    .alert-error.show { display: block; }
+
     .chart-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -546,7 +538,6 @@
       animation: slideDown 0.6s ease;
     }
 
-    /* ══ BAR CHARTS ══ */
     .bar-list { display: flex; flex-direction: column; gap: 12px; }
 
     .bar-row {
@@ -587,14 +578,6 @@
       overflow: hidden;
     }
 
-    .bar-fill::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-      animation: shimmer 2s infinite;
-    }
-
     .bar-fill span {
       font-size: 12px;
       color: #fff;
@@ -604,12 +587,6 @@
       z-index: 1;
     }
 
-    @keyframes shimmer {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
-    }
-
-    /* ══ REGIONS ══ */
     .region-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -682,7 +659,6 @@
       background: linear-gradient(90deg, var(--primary), #159d72);
     }
 
-    /* ══ PILLS ══ */
     .pill {
       display: inline-block;
       padding: 4px 10px;
@@ -696,11 +672,8 @@
     .pill-amber { background: #FAEEDA; color: #854F0B; }
     .pill-red { background: #FCEBEB; color: #A32D2D; }
 
-    .pill:hover {
-      transform: scale(1.05);
-    }
+    .pill:hover { transform: scale(1.05); }
 
-    /* ══ TABLES ══ */
     .table-wrap {
       overflow-x: auto;
       border-radius: var(--radius-lg);
@@ -738,7 +711,6 @@
       transition: background 0.2s ease;
     }
 
-    /* ══ EXPORT ══ */
     .export-row {
       display: flex;
       gap: 12px;
@@ -770,22 +742,15 @@
       box-shadow: var(--shadow-md);
     }
 
-    /* ══ LOADING STATE ══ */
-    .loading {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--primary);
-      animation: bounce 1.4s infinite;
+    .copyright {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
     }
 
-    @keyframes bounce {
-      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-      40% { opacity: 1; transform: scale(1); }
-    }
-
-    /* ══ RESPONSIVE ══ */
     @media (max-width: 768px) {
       .layout { flex-direction: column; }
 
@@ -805,8 +770,13 @@
         transform: translateY(0);
       }
 
+      .main {
+        height: calc(100vh - 56px);
+      }
+
       .content {
         padding: 1.5rem;
+        overflow-y: auto;
       }
 
       .stat-grid {
@@ -870,7 +840,6 @@
 
       .card {
         padding: 1.25rem;
-        border-radius: 12px;
       }
 
       .content {
@@ -885,7 +854,6 @@
       }
     }
 
-    /* ══ PRINT ══ */
     @media print {
       .sidebar, .topbar, .hamburger, .export-row, .btn-primary, .btn-sec {
         display: none !important;
@@ -942,6 +910,10 @@
       <strong>Matricule :</strong> 24H2030<br>
       <strong>UE :</strong> INF232<br>
       <strong>Année :</strong> 2025/2026
+      <div class="copyright">
+        © 2025 CensoTech Cameroun<br>
+        Tous droits réservés
+      </div>
     </div>
   </aside>
 
@@ -1115,6 +1087,9 @@
             <div class="alert-success" id="alert-ok">
               <i class="fas fa-check-circle"></i> Fiche enregistrée avec succès !
             </div>
+            <div class="alert-error" id="alert-error">
+              <i class="fas fa-exclamation-circle"></i> Erreur de synchronisation. Réessayez.
+            </div>
           </div>
         </div>
       </div>
@@ -1234,33 +1209,80 @@
 
 <script>
 // ════════════════════════════════════════════
-// CLOUD DATA — Stockage local (localStorage)
+// SUPABASE CONFIG
 // ════════════════════════════════════════════
+const SUPABASE_URL = 'https://xqzqfwhqtcowqfawxdhz.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6cXpmd2hxdGNvd3FmYXd4ZGh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTk0MTI4NDUsImV4cCI6MjAzNDk4ODg0NX0.EQtGZGMXNjnQZoAJZG8KQYR29d2dJEKL3xQ7q_Y7yXk';
+
+const { createClient } = window.supabase;
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
 let fiches = [];
+let isOnline = navigator.onLine;
+
+window.addEventListener('online', () => { isOnline = true; syncData(); });
+window.addEventListener('offline', () => { isOnline = false; });
 
 // ════════════════════════════════════════════
-// INIT — Charger les données au démarrage
+// INIT
 // ════════════════════════════════════════════
-function initApp() {
-  loadFiches();
+async function initApp() {
+  await loadFiches();
   initBars();
   refreshAllKPIs();
+  setupRealtimeSync();
 }
 
-function loadFiches() {
+async function loadFiches() {
   try {
-    fiches = JSON.parse(localStorage.getItem('censotech_fiches') || '[]');
+    const { data, error } = await supabase.from('censotech_fiches').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    fiches = data || [];
+    localStorage.setItem('censotech_fiches_backup', JSON.stringify(fiches));
   } catch (e) {
-    fiches = [];
+    console.warn('Chargement depuis localStorage:', e);
+    fiches = JSON.parse(localStorage.getItem('censotech_fiches_backup') || '[]');
   }
 }
 
-function saveFiches() {
+async function saveFiches() {
   try {
-    localStorage.setItem('censotech_fiches', JSON.stringify(fiches));
+    localStorage.setItem('censotech_fiches_backup', JSON.stringify(fiches));
+    if (isOnline) {
+      await syncData();
+    }
   } catch (e) {
-    alert('Erreur de sauvegarde. Vérifiez votre stockage.');
+    console.error('Erreur sauvegarde:', e);
   }
+}
+
+async function syncData() {
+  try {
+    const { data: existing, error: fetchError } = await supabase.from('censotech_fiches').select('id');
+    if (fetchError) throw fetchError;
+
+    const existingIds = new Set(existing.map(r => r.id));
+    const newFiches = fiches.filter(f => !existingIds.has(f.id));
+
+    if (newFiches.length > 0) {
+      const { error: insertError } = await supabase.from('censotech_fiches').insert(newFiches);
+      if (insertError) throw insertError;
+    }
+
+    await loadFiches();
+  } catch (e) {
+    console.error('Erreur sync:', e);
+  }
+}
+
+function setupRealtimeSync() {
+  supabase.channel('censotech_changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'censotech_fiches' }, () => {
+      loadFiches();
+      refreshAllKPIs();
+      initBars();
+    })
+    .subscribe();
 }
 
 // ════════════════════════════════════════════
@@ -1315,18 +1337,16 @@ function closeMobileMenu() {
 }
 
 // ════════════════════════════════════════════
-// KPI REFRESH — Recalculer tous les indicateurs à ZÉRO
+// KPI REFRESH
 // ════════════════════════════════════════════
 function refreshAllKPIs() {
   if (fiches.length === 0) {
-    // Réinitialiser à — (tiret)
     document.getElementById('kpi-ecoles').textContent = '—';
     document.getElementById('kpi-ens').textContent = '—';
     document.getElementById('kpi-eleves').textContent = '—';
     document.getElementById('kpi-regions').textContent = '0 / 10';
 
     document.getElementById('indicator-ratio').textContent = '—';
-    document.getElementById('indicator-ratio-note').textContent = 'Données insuffisantes';
     document.getElementById('indicator-eau').textContent = '—';
     document.getElementById('indicator-elec').textContent = '—';
     document.getElementById('indicator-latrines').textContent = '—';
@@ -1335,11 +1355,9 @@ function refreshAllKPIs() {
     document.getElementById('stat-avg-ens').textContent = '—';
     document.getElementById('stat-eau').textContent = '—';
     document.getElementById('stat-elec').textContent = '—';
-
     return;
   }
 
-  // Calculs depuis zéro
   const totalEcoles = fiches.length;
   const totalEns = fiches.reduce((s, f) => s + (f.ens || 0), 0);
   const totalEleves = fiches.reduce((s, f) => s + (f.eleves || 0), 0);
@@ -1353,20 +1371,17 @@ function refreshAllKPIs() {
   const avgEleves = totalEcoles > 0 ? Math.round(totalEleves / totalEcoles) : 0;
   const avgEns = totalEcoles > 0 ? (totalEns / totalEcoles).toFixed(1) : 0;
 
-  // Mettre à jour KPI
   document.getElementById('kpi-ecoles').textContent = totalEcoles.toLocaleString('fr-FR');
   document.getElementById('kpi-ens').textContent = totalEns.toLocaleString('fr-FR');
   document.getElementById('kpi-eleves').textContent = totalEleves.toLocaleString('fr-FR');
   document.getElementById('kpi-regions').textContent = `${regionsUniques} / 10`;
 
-  // Indicateurs nationaux
   document.getElementById('indicator-ratio').textContent = ratio;
   document.getElementById('indicator-ratio-note').textContent = ratio > 25 ? '⚠ Supérieur à la norme ONU (25)' : '✓ Conforme';
   document.getElementById('indicator-eau').textContent = `${pctEau}%`;
   document.getElementById('indicator-elec').textContent = `${pctElec}%`;
   document.getElementById('indicator-latrines').textContent = `${pctLatrines}%`;
 
-  // Stats secondaires
   document.getElementById('stat-avg-eleves').textContent = avgEleves.toLocaleString('fr-FR');
   document.getElementById('stat-avg-ens').textContent = avgEns;
   document.getElementById('stat-eau').textContent = `${pctEau}%`;
@@ -1374,7 +1389,7 @@ function refreshAllKPIs() {
 }
 
 // ════════════════════════════════════════════
-// BARRES (Accueil)
+// BARRES
 // ════════════════════════════════════════════
 function initBars() {
   const regEl = document.getElementById('bar-regions');
@@ -1387,7 +1402,6 @@ function initBars() {
     return;
   }
 
-  // Agrégation par région
   const regionsCount = {};
   fiches.forEach(f => {
     regionsCount[f.region] = (regionsCount[f.region] || 0) + 1;
@@ -1407,7 +1421,6 @@ function initBars() {
     </div>`
   ).join('');
 
-  // Agrégation des besoins
   const besoinsCount = {
     'Tables-bancs': 0,
     'Latrines': 0,
@@ -1487,7 +1500,7 @@ function renderRegions() {
 // ════════════════════════════════════════════
 // FORMULAIRE
 // ════════════════════════════════════════════
-function submitFiche() {
+async function submitFiche() {
   const nom = document.getElementById('f-nom').value.trim();
   const region = document.getElementById('f-region').value;
 
@@ -1495,7 +1508,7 @@ function submitFiche() {
   if (!region) { alert('Veuillez sélectionner une région.'); return; }
 
   const fiche = {
-    id: Date.now(),
+    id: Date.now().toString(),
     date: new Date().toLocaleDateString('fr-FR'),
     nom,
     region,
@@ -1512,30 +1525,36 @@ function submitFiche() {
     biblio: document.getElementById('f-biblio').value,
     besoins: document.getElementById('f-besoins').value,
     recenseur: document.getElementById('f-recenseur').value,
+    created_at: new Date().toISOString()
   };
 
-  fiches.push(fiche);
-  saveFiches();
+  try {
+    fiches.push(fiche);
+    await saveFiches();
 
-  // Reset form
-  document.getElementById('f-nom').value = '';
-  document.getElementById('f-region').value = '';
-  document.getElementById('f-dept').value = '';
-  document.getElementById('f-ens').value = '';
-  document.getElementById('f-eleves').value = '';
-  document.getElementById('f-salles').value = '';
-  document.getElementById('f-bancs').value = '';
-  document.getElementById('f-besoins').value = '';
-  document.getElementById('f-recenseur').value = '';
+    document.getElementById('f-nom').value = '';
+    document.getElementById('f-region').value = '';
+    document.getElementById('f-dept').value = '';
+    document.getElementById('f-ens').value = '';
+    document.getElementById('f-eleves').value = '';
+    document.getElementById('f-salles').value = '';
+    document.getElementById('f-bancs').value = '';
+    document.getElementById('f-besoins').value = '';
+    document.getElementById('f-recenseur').value = '';
 
-  const ok = document.getElementById('alert-ok');
-  ok.classList.add('show');
-  setTimeout(() => ok.classList.remove('show'), 4000);
+    const ok = document.getElementById('alert-ok');
+    ok.classList.add('show');
+    setTimeout(() => ok.classList.remove('show'), 4000);
 
-  // Mettre à jour tous les affichages
-  refreshAllKPIs();
-  initBars();
-  renderTable();
+    refreshAllKPIs();
+    initBars();
+    renderTable();
+  } catch (e) {
+    console.error('Erreur soumission:', e);
+    const err = document.getElementById('alert-error');
+    err.classList.add('show');
+    setTimeout(() => err.classList.remove('show'), 4000);
+  }
 }
 
 // ════════════════════════════════════════════
@@ -1564,7 +1583,7 @@ function renderTable() {
   }).join('');
 }
 
-// ═══════════════════════════════════���════════
+// ════════════════════════════════════════════
 // STATS
 // ════════════════════════════════════════════
 function updateStats() {
@@ -1608,13 +1627,6 @@ function initCharts() {
       types[f.type] = (types[f.type] || 0) + 1;
       milieux[f.milieu] = (milieux[f.milieu] || 0) + 1;
     });
-  } else {
-    // Données démo
-    types['Primaire public'] = 0;
-    types['Primaire privé'] = 0;
-    types['Secondaire public'] = 0;
-    types['Secondaire privé'] = 0;
-    milieux.Urbain = 0; milieux['Semi-urbain'] = 0; milieux.Rural = 0;
   }
 
   const COLORS = ['#1D9E75', '#5DCAA5', '#EF9F27', '#E24B4A', '#378ADD', '#9FE1CB'];
@@ -1676,7 +1688,7 @@ function initCharts() {
 // EXPORT
 // ════════════════════════════════════════════
 function exportCSV() {
-  if (fiches.length === 0) { alert('Aucune fiche à exporter. Ajoutez des données d\'abord.'); return; }
+  if (fiches.length === 0) { alert('Aucune fiche à exporter.'); return; }
   const headers = ['ID', 'Date', 'Nom', 'Région', 'Département', 'Type', 'Milieu', 'Enseignants', 'Élèves', 'Salles', 'Tables-bancs', 'Eau', 'Électricité', 'Latrines', 'Bibliothèque', 'Besoins', 'Recenseur'];
   const rows = fiches.map(f => [f.id, f.date, `"${f.nom}"`, f.region, f.dept, f.type, f.milieu, f.ens, f.eleves, f.salles, f.bancs, f.eau, f.elec, f.latrines, f.biblio, `"${f.besoins}"`, f.recenseur]);
   const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
@@ -1726,7 +1738,7 @@ function renderReport() {
     <p><strong>📈 Ratio élèves/enseignant :</strong> ${ratio} ${ratio > 25 ? '(⚠ supérieur à la norme ONU de 25)' : '(✓ conforme)'}</p>
     <p style="margin-top:1rem;"><strong>💧 Accès eau potable :</strong> ${pctEau}% des établissements — objectif 100%</p>
     <p><strong>⚡ Électrification :</strong> ${pctElec}% des établissements — objectif 100%</p>
-    <p style="margin-top:1.5rem;color:var(--muted);font-size:12px;">Rapport produit dans le cadre du TP INF232 — Application de collecte de données en ligne. Année académique 2025/2026</p>`;
+    <p style="margin-top:1.5rem;color:var(--muted);font-size:12px;">© 2025 CensoTech Cameroun - Rapport produit dans le cadre du TP INF232. Année académique 2025/2026</p>`;
 }
 
 // ════════════════════════════════════════════
