@@ -192,8 +192,19 @@
     .drawer-overlay.active { display: block; }
 
     @media (max-width: 768px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.mobile-active { transform: translateX(0); }
+      .sidebar { 
+        position: fixed;
+        top: 56px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 56px);
+        padding: 1.5rem 1.5rem;
+        transform: translateY(-100%);
+        border-radius: 16px 16px 0 0;
+        overflow-y: auto;
+        z-index: 98;
+      }
+      .sidebar.mobile-active { transform: translateY(0); }
       .drawer-overlay.active { display: block; }
     }
 
@@ -291,7 +302,6 @@
       padding: 2rem;
       animation: fadeIn 0.6s ease;
       flex: 1;
-      overflow-y: auto;
     }
 
     .section {
@@ -754,20 +764,9 @@
     @media (max-width: 768px) {
       .layout { flex-direction: column; }
 
-      .sidebar {
-        position: fixed;
-        top: 56px;
-        left: 0;
-        width: 100%;
-        height: calc(100vh - 56px);
-        border-radius: 16px 16px 0 0;
-        transform: translateY(100%);
-        transition: transform 0.3s ease;
-        z-index: 98;
-      }
-
-      .sidebar.mobile-active {
-        transform: translateY(0);
+      .topbar {
+        height: 56px;
+        padding: 0.75rem 1rem;
       }
 
       .main {
@@ -780,7 +779,7 @@
       }
 
       .stat-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 12px;
       }
 
@@ -804,6 +803,10 @@
         font-size: 24px;
       }
 
+      .stat-label {
+        font-size: 11px;
+      }
+
       .card {
         padding: 1.5rem;
       }
@@ -819,31 +822,46 @@
       th, td {
         padding: 10px 12px;
       }
-    }
 
-    @media (max-width: 480px) {
-      .topbar {
-        padding: 0.75rem 1rem;
+      .bar-name {
+        width: 80px;
+        font-size: 12px;
+      }
+
+      .live-badge {
+        display: none;
       }
 
       .topbar-title {
         font-size: 15px;
       }
+    }
+
+    @media (max-width: 480px) {
+      .content {
+        padding: 1rem;
+      }
 
       .stat-grid {
         grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .stat-card {
+        padding: 0.75rem;
       }
 
       .stat-value {
         font-size: 20px;
       }
 
-      .card {
-        padding: 1.25rem;
+      .stat-label {
+        font-size: 10px;
       }
 
-      .content {
-        padding: 1rem;
+      .card {
+        padding: 1.25rem;
+        margin-bottom: 1rem;
       }
 
       .form-group input,
@@ -851,6 +869,15 @@
       .form-group textarea {
         padding: 10px 12px;
         font-size: 16px;
+      }
+
+      .bar-name {
+        width: 60px;
+        font-size: 11px;
+      }
+
+      .bar-fill span {
+        font-size: 11px;
       }
     }
 
@@ -876,7 +903,7 @@
 <div class="layout">
 
   <!-- ═══ SIDEBAR ═══ -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="brand-logo">📚</div>
       <div class="brand-name">CensoTech</div>
@@ -916,6 +943,8 @@
       </div>
     </div>
   </aside>
+
+  <div class="drawer-overlay" id="overlay" onclick="closeMobileMenu()"></div>
 
   <!-- ═══ MAIN ═══ -->
   <div class="main">
@@ -963,23 +992,66 @@
           <div class="card">
             <div class="card-title">📈 Établissements par région</div>
             <div class="bar-list" id="bar-regions">
-              <p style="color: var(--muted); text-align: center; padding: 2rem;">
-                Soumettez des fiches pour voir les données 📊
-              </p>
+              <p style="color: var(--muted); text-align: center; padding: 2rem;">Soumettez des fiches pour voir les données 📊</p>
             </div>
           </div>
           <div class="card">
             <div class="card-title">🎯 Besoins les plus signalés</div>
             <div class="bar-list" id="bar-besoins">
-              <p style="color: var(--muted); text-align: center; padding: 2rem;">
-                Aucune donnée pour l'instant
-              </p>
+              <p style="color: var(--muted); text-align: center; padding: 2rem;">Aucune donnée pour l'instant</p>
             </div>
           </div>
         </div>
+      </div>
 
+      <!-- ═══ COLLECTE ═══ -->
+      <div id="sec-collecte" class="section">
         <div class="card">
-          <div class="card-title">📋 Indicateurs nationaux</div>
+          <div class="card-title">📋 Nouvelle fiche de collecte</div>
+          <div class="form-grid" id="form-collecte">
+            <div class="form-group">
+              <label>Région</label>
+              <select id="region" required>
+                <option value="">Sélectionner une région...</option>
+                <option value="Adamaoua">Adamaoua</option>
+                <option value="Centre">Centre</option>
+                <option value="Est">Est</option>
+                <option value="Extrême-Nord">Extrême-Nord</option>
+                <option value="Littoral">Littoral</option>
+                <option value="Nord">Nord</option>
+                <option value="Nord-Ouest">Nord-Ouest</option>
+                <option value="Ouest">Ouest</option>
+                <option value="Sud">Sud</option>
+                <option value="Sud-Ouest">Sud-Ouest</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Nom de l'établissement</label>
+              <input type="text" id="nom-ecole" placeholder="Ex: Lycée de Yaoundé" required />
+            </div>
+            <div class="form-group">
+              <label>Nombre d'élèves</label>
+              <input type="number" id="nb-eleves" placeholder="0" min="0" required />
+            </div>
+            <div class="form-group">
+              <label>Nombre d'enseignants</label>
+              <input type="number" id="nb-enseignants" placeholder="0" min="0" required />
+            </div>
+            <div class="form-group full">
+              <label>Besoins identifiés</label>
+              <textarea id="besoins" placeholder="Exemple: Manque de pupitre, absence d'électricité..."></textarea>
+            </div>
+            <div class="alert-success" id="alert-success">✅ Fiche enregistrée avec succès!</div>
+            <div class="alert-error" id="alert-error">❌ Erreur lors de l'enregistrement</div>
+            <button class="btn-primary" onclick="submitForm()">💾 Enregistrer la fiche</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ STATISTIQUES ═══ -->
+      <div id="sec-stats" class="section">
+        <div class="card">
+          <div class="card-title">📊 Vue d'ensemble</div>
           <div class="stat-grid" style="margin:0;">
             <div class="stat-card">
               <div class="stat-label">Ratio élèves/enseignant</div>
@@ -996,175 +1068,33 @@
               <div class="stat-value" id="indicator-elec">—</div>
               <div class="stat-delta bad">Objectif: 100%</div>
             </div>
-            <div class="stat-card">
-              <div class="stat-label">% Latrines fonctionnelles</div>
-              <div class="stat-value" id="indicator-latrines">—</div>
-              <div class="stat-delta">Objectif: 100%</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══ COLLECTE ═══ -->
-      <div id="sec-collecte" class="section">
-        <div class="card">
-          <div class="card-title">📋 Nouvelle fiche d'établissement scolaire</div>
-          <div class="form-grid">
-            <div class="form-group full">
-              <label>🏫 Nom de l'établissement *</label>
-              <input type="text" id="f-nom" placeholder="Ex: École Primaire Publique de Bafoussam Centre" />
-            </div>
-            <div class="form-group">
-              <label>📍 Région *</label>
-              <select id="f-region">
-                <option value="">-- Choisir --</option>
-                <option>Centre</option><option>Littoral</option><option>Ouest</option>
-                <option>Nord-Ouest</option><option>Sud-Ouest</option><option>Adamaoua</option>
-                <option>Nord</option><option>Extrême-Nord</option><option>Est</option><option>Sud</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>📌 Département</label>
-              <input type="text" id="f-dept" placeholder="Ex: Mfoundi, Wouri..." />
-            </div>
-            <div class="form-group">
-              <label>🏛️ Type d'établissement *</label>
-              <select id="f-type">
-                <option>Maternelle publique</option><option>Maternelle privée</option>
-                <option>Primaire public</option><option>Primaire privé</option>
-                <option>Secondaire public</option><option>Secondaire privé</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>🌍 Milieu</label>
-              <select id="f-milieu">
-                <option>Urbain</option><option>Semi-urbain</option><option>Rural</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>👨‍🏫 Nombre d'enseignants *</label>
-              <input type="number" id="f-ens" placeholder="Ex: 12" min="0" />
-            </div>
-            <div class="form-group">
-              <label>👨‍🎓 Nombre d'élèves *</label>
-              <input type="number" id="f-eleves" placeholder="Ex: 340" min="0" />
-            </div>
-            <div class="form-group">
-              <label>🏛️ Salles de classe</label>
-              <input type="number" id="f-salles" placeholder="Ex: 8" min="0" />
-            </div>
-            <div class="form-group">
-              <label>🪑 Tables-bancs disponibles</label>
-              <input type="number" id="f-bancs" placeholder="Ex: 150" min="0" />
-            </div>
-            <div class="form-group">
-              <label>💧 Accès eau potable</label>
-              <select id="f-eau"><option>Oui</option><option>Non</option><option>Partiel</option></select>
-            </div>
-            <div class="form-group">
-              <label>⚡ Électricité</label>
-              <select id="f-elec"><option>Oui</option><option>Non</option><option>Partiel</option></select>
-            </div>
-            <div class="form-group">
-              <label>🚻 Latrines fonctionnelles</label>
-              <select id="f-latrines"><option>Oui</option><option>Non</option><option>Partiel</option></select>
-            </div>
-            <div class="form-group">
-              <label>📚 Bibliothèque / Médiathèque</label>
-              <select id="f-biblio"><option>Oui</option><option>Non</option></select>
-            </div>
-            <div class="form-group full">
-              <label>🎯 Besoins prioritaires (décrivez les manques)</label>
-              <textarea id="f-besoins" placeholder="Ex: Manque de tables-bancs, absence de latrines pour filles, besoin de manuels..."></textarea>
-            </div>
-            <div class="form-group full">
-              <label>✍️ Nom du recenseur</label>
-              <input type="text" id="f-recenseur" placeholder="Votre nom complet" />
-            </div>
-            <button class="btn-primary" onclick="submitFiche()">
-              <i class="fas fa-check"></i> Enregistrer la fiche
-            </button>
-            <div class="alert-success" id="alert-ok">
-              <i class="fas fa-check-circle"></i> Fiche enregistrée avec succès !
-            </div>
-            <div class="alert-error" id="alert-error">
-              <i class="fas fa-exclamation-circle"></i> Erreur de synchronisation. Réessayez.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══ STATISTIQUES ═══ -->
-      <div id="sec-stats" class="section">
-        <div class="stat-grid">
-          <div class="stat-card">
-            <div class="stat-label">Moyenne élèves/école</div>
-            <div class="stat-value" id="stat-avg-eleves">—</div>
-            <div class="stat-delta">Temps réel</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Moyenne enseignants/école</div>
-            <div class="stat-value" id="stat-avg-ens">—</div>
-            <div class="stat-delta">Fiches soumises</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">% Accès eau potable</div>
-            <div class="stat-value" id="stat-eau">—</div>
-            <div class="stat-delta warn">Objectif: 100%</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">% Électrifiées</div>
-            <div class="stat-value" id="stat-elec">—</div>
-            <div class="stat-delta bad">Objectif: 100%</div>
-          </div>
-        </div>
-
-        <div class="chart-grid">
-          <div class="card">
-            <div class="card-title">Répartition par type d'établissement</div>
-            <div class="chart-wrap"><canvas id="chartType"></canvas></div>
-          </div>
-          <div class="card">
-            <div class="card-title">Répartition par milieu (urbain/rural)</div>
-            <div class="chart-wrap"><canvas id="chartMilieu"></canvas></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">📊 Analyse descriptive</div>
-          <div id="analyse-table">
-            <p style="color:var(--muted); font-size:13px; text-align: center; padding: 2rem;">
-              Soumettez des fiches pour voir l'analyse apparaître ici 📈
-            </p>
           </div>
         </div>
       </div>
 
       <!-- ═══ RÉGIONS ═══ -->
       <div id="sec-regions" class="section">
-        <div class="region-grid" id="region-grid">
-          <p style="grid-column: 1 / -1; color: var(--muted); text-align: center; padding: 2rem;">
-            Les données régionales apparaîtront ici une fois les fiches soumises
-          </p>
-        </div>
+        <div class="region-grid" id="region-list"></div>
       </div>
 
       <!-- ═══ DONNÉES ═══ -->
       <div id="sec-donnees" class="section">
         <div class="card">
-          <div class="card-title">📋 Toutes les fiches collectées</div>
+          <div class="card-title">📂 Toutes les données enregistrées</div>
           <div class="table-wrap">
-            <table>
+            <table id="data-table">
               <thead>
                 <tr>
-                  <th>#</th><th>Établissement</th><th>Région</th><th>Type</th>
-                  <th>Élèves</th><th>Ens.</th><th>Eau</th><th>Électricité</th><th>Statut</th>
+                  <th>Région</th>
+                  <th>Établissement</th>
+                  <th>��lèves</th>
+                  <th>Enseignants</th>
+                  <th>Besoins</th>
+                  <th>Date</th>
                 </tr>
               </thead>
               <tbody id="data-tbody">
-                <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem;">
-                  Aucune fiche pour l'instant — allez dans Collecte pour ajouter des données.
-                </td></tr>
+                <tr><td colspan="6" style="text-align:center;color:var(--muted);">Aucune donnée pour l'instant</td></tr>
               </tbody>
             </table>
           </div>
@@ -1174,577 +1104,315 @@
       <!-- ═══ EXPORT ═══ -->
       <div id="sec-export" class="section">
         <div class="card">
-          <div class="card-title">💾 Exporter les données</div>
-          <p style="font-size:14px; color:var(--muted); margin-bottom:1.5rem;">
-            Téléchargez toutes les fiches soumises dans le format de votre choix.
-          </p>
+          <div class="card-title">📤 Exporter les données</div>
+          <p style="margin-bottom:1.5rem;color:var(--muted);">Téléchargez vos données dans le format de votre choix</p>
           <div class="export-row">
             <button class="btn-sec" onclick="exportCSV()">
-              <i class="fas fa-file-csv"></i> Exporter en CSV
+              <i class="fas fa-file-csv"></i> Télécharger CSV
             </button>
             <button class="btn-sec" onclick="exportJSON()">
-              <i class="fas fa-file-code"></i> Exporter en JSON
+              <i class="fas fa-file-code"></i> Télécharger JSON
             </button>
-            <button class="btn-sec" onclick="printReport()">
+            <button class="btn-sec" onclick="window.print()">
               <i class="fas fa-print"></i> Imprimer
             </button>
           </div>
         </div>
+      </div>
 
-        <div class="card">
-          <div class="card-title">📄 Rapport de synthèse nationale</div>
-          <div id="report-content" style="font-size:14px; line-height:1.8; color:var(--text);">
-            <p style="color: var(--muted); text-align: center; padding: 2rem;">
-              Soumettez des fiches pour générer le rapport 📊
-            </p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ═══ SUPABASE CONFIG ═══
+  const SUPABASE_URL = 'https://fsmyjxcmjrbgzkyebpwn.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzbXlqeGNtanJiZ3preWVicHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NDk0NzcsImV4cCI6MjA5MzAyNTQ3N30.IZ8k-uw19KnNnLgyBmAFnv9nVw59EApmxkkxRGyUAbc';
+  
+  const { createClient } = supabase;
+  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let allData = [];
+
+  // ═══ NAV & UI ═══
+  function goTo(section, element) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    
+    document.getElementById('sec-' + section).classList.add('active');
+    element.classList.add('active');
+    
+    const titles = {
+      'accueil': '🏠 Tableau de bord',
+      'collecte': '📋 Collecte de données',
+      'stats': '📊 Statistiques',
+      'regions': '🗺️ Vue régionale',
+      'donnees': '🗂️ Données enregistrées',
+      'export': '📤 Export'
+    };
+    
+    document.getElementById('page-title').textContent = titles[section] || 'CensoTech';
+    closeMobileMenu();
+  }
+
+  function toggleMobileMenu() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const hamburger = document.getElementById('hamburger');
+    
+    sidebar.classList.toggle('mobile-active');
+    overlay.classList.toggle('active');
+    hamburger.classList.toggle('active');
+  }
+
+  function closeMobileMenu() {
+    document.getElementById('sidebar').classList.remove('mobile-active');
+    document.getElementById('overlay').classList.remove('active');
+    document.getElementById('hamburger').classList.remove('active');
+  }
+
+  // ═══ FORM SUBMISSION ═══
+  async function submitForm() {
+    const form = {
+      region: document.getElementById('region').value,
+      nom_ecole: document.getElementById('nom-ecole').value,
+      nb_eleves: parseInt(document.getElementById('nb-eleves').value) || 0,
+      nb_enseignants: parseInt(document.getElementById('nb-enseignants').value) || 0,
+      besoins: document.getElementById('besoins').value,
+      created_at: new Date().toISOString()
+    };
+
+    if (!form.region || !form.nom_ecole) {
+      showAlert('error');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('fiches')
+        .insert([form]);
+
+      if (error) throw error;
+
+      showAlert('success');
+      document.getElementById('form-collecte').querySelectorAll('input, textarea, select').forEach(el => {
+        if (el.type !== 'button') el.value = '';
+      });
+
+      setTimeout(() => loadData(), 500);
+    } catch (error) {
+      console.error('Erreur:', error);
+      showAlert('error');
+    }
+  }
+
+  function showAlert(type) {
+    const success = document.getElementById('alert-success');
+    const error = document.getElementById('alert-error');
+    
+    if (type === 'success') {
+      success.classList.add('show');
+      setTimeout(() => success.classList.remove('show'), 3000);
+    } else {
+      error.classList.add('show');
+      setTimeout(() => error.classList.remove('show'), 3000);
+    }
+  }
+
+  // ═══ DATA LOADING ═══
+  async function loadData() {
+    try {
+      const { data, error } = await supabaseClient
+        .from('fiches')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      allData = data || [];
+      updateDashboard();
+      updateTable();
+      updateRegions();
+    } catch (error) {
+      console.error('Erreur chargement:', error);
+    }
+  }
+
+  function updateDashboard() {
+    const totalEcoles = allData.length;
+    const totalEleves = allData.reduce((sum, d) => sum + (d.nb_eleves || 0), 0);
+    const totalEnseignants = allData.reduce((sum, d) => sum + (d.nb_enseignants || 0), 0);
+    const uniqueRegions = new Set(allData.map(d => d.region)).size;
+
+    document.getElementById('kpi-ecoles').textContent = totalEcoles;
+    document.getElementById('kpi-eleves').textContent = totalEleves;
+    document.getElementById('kpi-ens').textContent = totalEnseignants;
+    document.getElementById('kpi-regions').textContent = `${uniqueRegions} / 10`;
+
+    if (totalEnseignants > 0) {
+      const ratio = (totalEleves / totalEnseignants).toFixed(1);
+      document.getElementById('indicator-ratio').textContent = ratio;
+      document.getElementById('indicator-ratio-note').textContent = ratio > 50 ? '⚠️ Élevé' : '✓ Normal';
+    }
+
+    updateRegionBars();
+    updateNeedsBars();
+  }
+
+  function updateRegionBars() {
+    const regionCounts = {};
+    allData.forEach(d => {
+      regionCounts[d.region] = (regionCounts[d.region] || 0) + 1;
+    });
+
+    const sorted = Object.entries(regionCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    const maxCount = Math.max(...sorted.map(([_, count]) => count), 1);
+    const barRegions = document.getElementById('bar-regions');
+
+    if (sorted.length === 0) {
+      barRegions.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 2rem;">Soumettez des fiches pour voir les données 📊</p>';
+      return;
+    }
+
+    barRegions.innerHTML = sorted.map(([region, count]) => `
+      <div class="bar-row">
+        <div class="bar-name">${region}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width: ${(count / maxCount) * 100}%">
+            <span>${count}</span>
           </div>
         </div>
       </div>
-
-    </div><!-- /content -->
-  </div><!-- /main -->
-</div><!-- /layout -->
-
-<div class="drawer-overlay" id="drawer-overlay" onclick="closeMobileMenu()"></div>
-
-<script>
-// ════════════════════════════════════════════
-// SUPABASE CONFIG
-// ════════════════════════════════════════════
-const SUPABASE_URL = 'https://xqzqfwhqtcowqfawxdhz.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6cXpmd2hxdGNvd3FmYXd4ZGh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTk0MTI4NDUsImV4cCI6MjAzNDk4ODg0NX0.EQtGZGMXNjnQZoAJZG8KQYR29d2dJEKL3xQ7q_Y7yXk';
-
-const { createClient } = window.supabase;
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-let fiches = [];
-let isOnline = navigator.onLine;
-
-window.addEventListener('online', () => { isOnline = true; syncData(); });
-window.addEventListener('offline', () => { isOnline = false; });
-
-// ════════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════════
-async function initApp() {
-  await loadFiches();
-  initBars();
-  refreshAllKPIs();
-  setupRealtimeSync();
-}
-
-async function loadFiches() {
-  try {
-    const { data, error } = await supabase.from('censotech_fiches').select('*').order('created_at', { ascending: false });
-    if (error) throw error;
-    fiches = data || [];
-    localStorage.setItem('censotech_fiches_backup', JSON.stringify(fiches));
-  } catch (e) {
-    console.warn('Chargement depuis localStorage:', e);
-    fiches = JSON.parse(localStorage.getItem('censotech_fiches_backup') || '[]');
-  }
-}
-
-async function saveFiches() {
-  try {
-    localStorage.setItem('censotech_fiches_backup', JSON.stringify(fiches));
-    if (isOnline) {
-      await syncData();
-    }
-  } catch (e) {
-    console.error('Erreur sauvegarde:', e);
-  }
-}
-
-async function syncData() {
-  try {
-    const { data: existing, error: fetchError } = await supabase.from('censotech_fiches').select('id');
-    if (fetchError) throw fetchError;
-
-    const existingIds = new Set(existing.map(r => r.id));
-    const newFiches = fiches.filter(f => !existingIds.has(f.id));
-
-    if (newFiches.length > 0) {
-      const { error: insertError } = await supabase.from('censotech_fiches').insert(newFiches);
-      if (insertError) throw insertError;
-    }
-
-    await loadFiches();
-  } catch (e) {
-    console.error('Erreur sync:', e);
-  }
-}
-
-function setupRealtimeSync() {
-  supabase.channel('censotech_changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'censotech_fiches' }, () => {
-      loadFiches();
-      refreshAllKPIs();
-      initBars();
-    })
-    .subscribe();
-}
-
-// ════════════════════════════════════════════
-// NAVIGATION
-// ════════════════════════════════════════════
-const titles = {
-  accueil: 'Tableau de bord',
-  collecte: 'Collecte de données',
-  stats: 'Statistiques descriptives',
-  regions: 'Carte des régions',
-  donnees: 'Données collectées',
-  export: 'Export & Rapports',
-};
-
-function goTo(id, el) {
-  closeMobileMenu();
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('sec-' + id).classList.add('active');
-  if (el) el.classList.add('active');
-  document.getElementById('page-title').textContent = titles[id];
-
-  if (id === 'stats') {
-    setTimeout(() => initCharts(), 100);
-    updateStats();
-  }
-  if (id === 'donnees') renderTable();
-  if (id === 'export') renderReport();
-}
-
-// ════════════════════════════════════════════
-// MOBILE MENU
-// ════════════════════════════════════════════
-function toggleMobileMenu() {
-  const sidebar = document.querySelector('.sidebar');
-  const overlay = document.getElementById('drawer-overlay');
-  const hamburger = document.getElementById('hamburger');
-
-  sidebar.classList.toggle('mobile-active');
-  overlay.classList.toggle('active');
-  hamburger.classList.toggle('active');
-}
-
-function closeMobileMenu() {
-  const sidebar = document.querySelector('.sidebar');
-  const overlay = document.getElementById('drawer-overlay');
-  const hamburger = document.getElementById('hamburger');
-
-  sidebar.classList.remove('mobile-active');
-  overlay.classList.remove('active');
-  hamburger.classList.remove('active');
-}
-
-// ════════════════════════════════════════════
-// KPI REFRESH
-// ════════════════════════════════════════════
-function refreshAllKPIs() {
-  if (fiches.length === 0) {
-    document.getElementById('kpi-ecoles').textContent = '—';
-    document.getElementById('kpi-ens').textContent = '—';
-    document.getElementById('kpi-eleves').textContent = '—';
-    document.getElementById('kpi-regions').textContent = '0 / 10';
-
-    document.getElementById('indicator-ratio').textContent = '—';
-    document.getElementById('indicator-eau').textContent = '—';
-    document.getElementById('indicator-elec').textContent = '—';
-    document.getElementById('indicator-latrines').textContent = '—';
-
-    document.getElementById('stat-avg-eleves').textContent = '—';
-    document.getElementById('stat-avg-ens').textContent = '—';
-    document.getElementById('stat-eau').textContent = '—';
-    document.getElementById('stat-elec').textContent = '—';
-    return;
+    `).join('');
   }
 
-  const totalEcoles = fiches.length;
-  const totalEns = fiches.reduce((s, f) => s + (f.ens || 0), 0);
-  const totalEleves = fiches.reduce((s, f) => s + (f.eleves || 0), 0);
-  const regionsUniques = new Set(fiches.map(f => f.region)).size;
-
-  const ratio = totalEns > 0 ? (totalEleves / totalEns).toFixed(1) : '—';
-  const pctEau = fiches.length > 0 ? Math.round((fiches.filter(f => f.eau === 'Oui').length / fiches.length) * 100) : 0;
-  const pctElec = fiches.length > 0 ? Math.round((fiches.filter(f => f.elec === 'Oui').length / fiches.length) * 100) : 0;
-  const pctLatrines = fiches.length > 0 ? Math.round((fiches.filter(f => f.latrines === 'Oui').length / fiches.length) * 100) : 0;
-
-  const avgEleves = totalEcoles > 0 ? Math.round(totalEleves / totalEcoles) : 0;
-  const avgEns = totalEcoles > 0 ? (totalEns / totalEcoles).toFixed(1) : 0;
-
-  document.getElementById('kpi-ecoles').textContent = totalEcoles.toLocaleString('fr-FR');
-  document.getElementById('kpi-ens').textContent = totalEns.toLocaleString('fr-FR');
-  document.getElementById('kpi-eleves').textContent = totalEleves.toLocaleString('fr-FR');
-  document.getElementById('kpi-regions').textContent = `${regionsUniques} / 10`;
-
-  document.getElementById('indicator-ratio').textContent = ratio;
-  document.getElementById('indicator-ratio-note').textContent = ratio > 25 ? '⚠ Supérieur à la norme ONU (25)' : '✓ Conforme';
-  document.getElementById('indicator-eau').textContent = `${pctEau}%`;
-  document.getElementById('indicator-elec').textContent = `${pctElec}%`;
-  document.getElementById('indicator-latrines').textContent = `${pctLatrines}%`;
-
-  document.getElementById('stat-avg-eleves').textContent = avgEleves.toLocaleString('fr-FR');
-  document.getElementById('stat-avg-ens').textContent = avgEns;
-  document.getElementById('stat-eau').textContent = `${pctEau}%`;
-  document.getElementById('stat-elec').textContent = `${pctElec}%`;
-}
-
-// ════════════════════════════════════════════
-// BARRES
-// ════════════════════════════════════════════
-function initBars() {
-  const regEl = document.getElementById('bar-regions');
-  const bEl = document.getElementById('bar-besoins');
-
-  if (fiches.length === 0) {
-    regEl.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 2rem;">Soumettez des fiches pour voir les données 📊</p>';
-    bEl.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 2rem;">Aucune donnée pour l\'instant</p>';
-    renderRegions();
-    return;
-  }
-
-  const regionsCount = {};
-  fiches.forEach(f => {
-    regionsCount[f.region] = (regionsCount[f.region] || 0) + 1;
-  });
-
-  const top5 = Object.entries(regionsCount)
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
-
-  const maxCount = Math.max(...top5.map(r => r.count), 1);
-
-  regEl.innerHTML = top5.map(r =>
-    `<div class="bar-row">
-      <div class="bar-name">${r.name}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${(r.count/maxCount)*100}%"><span>${r.count}</span></div></div>
-    </div>`
-  ).join('');
-
-  const besoinsCount = {
-    'Tables-bancs': 0,
-    'Latrines': 0,
-    'Manuels': 0,
-    'Électricité': 0,
-    'Eau potable': 0,
-    'Mobilier': 0
-  };
-
-  fiches.forEach(f => {
-    const besoinsTxt = (f.besoins || '').toLowerCase();
-    if (besoinsTxt.includes('table')) besoinsCount['Tables-bancs']++;
-    if (besoinsTxt.includes('latrine')) besoinsCount['Latrines']++;
-    if (besoinsTxt.includes('manuel')) besoinsCount['Manuels']++;
-    if (besoinsTxt.includes('électricité') || besoinsTxt.includes('elec')) besoinsCount['Électricité']++;
-    if (besoinsTxt.includes('eau')) besoinsCount['Eau potable']++;
-    if (besoinsTxt.includes('mobilier')) besoinsCount['Mobilier']++;
-  });
-
-  const besoinsEntries = Object.entries(besoinsCount)
-    .filter(([_, count]) => count > 0)
-    .map(([label, count]) => ({
-      label,
-      pct: Math.round((count / fiches.length) * 100)
-    }))
-    .sort((a, b) => b.pct - a.pct)
-    .slice(0, 5);
-
-  if (besoinsEntries.length === 0) {
-    bEl.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 2rem;">Aucun besoin signalé</p>';
-  } else {
-    bEl.innerHTML = besoinsEntries.map(b =>
-      `<div class="bar-row">
-        <div class="bar-name">${b.label}</div>
-        <div class="bar-track"><div class="bar-fill" style="width:${b.pct}%"><span>${b.pct}%</span></div></div>
-      </div>`
-    ).join('');
-  }
-
-  renderRegions();
-}
-
-function renderRegions() {
-  const grid = document.getElementById('region-grid');
-
-  if (fiches.length === 0) {
-    grid.innerHTML = '<p style="grid-column: 1 / -1; color: var(--muted); text-align: center; padding: 2rem;">Les données régionales apparaîtront ici une fois les fiches soumises</p>';
-    return;
-  }
-
-  const regionsData = [
-    'Centre', 'Littoral', 'Ouest', 'Nord-Ouest', 'Sud-Ouest',
-    'Adamaoua', 'Nord', 'Extrême-Nord', 'Est', 'Sud'
-  ];
-
-  const regionsCount = {};
-  fiches.forEach(f => {
-    regionsCount[f.region] = (regionsCount[f.region] || 0) + 1;
-  });
-
-  grid.innerHTML = regionsData.map(region => {
-    const count = regionsCount[region] || 0;
-    const taux = fiches.length > 0 ? Math.round((count / fiches.length) * 100) : 0;
-    const pill = taux >= 70 ? 'pill-green' : taux >= 45 ? 'pill-amber' : taux > 0 ? 'pill-amber' : 'pill-red';
-    const lab = taux >= 70 ? 'Bonne couverture' : taux >= 45 ? 'Couverture partielle' : taux > 0 ? 'Zone critique' : 'Aucune donnée';
-
-    return `<div class="region-card">
-      <div class="region-name">${region}</div>
-      <div class="region-row"><span>Établissements</span><strong>${count}</strong></div>
-      <div class="region-row"><span>Taux</span><strong>${taux}%</strong></div>
-      <div class="region-row"><span>Statut</span><span class="pill ${pill}">${lab}</span></div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${taux}%"></div></div>
-    </div>`;
-  }).join('');
-}
-
-// ════════════════════════════════════════════
-// FORMULAIRE
-// ════════════════════════════════════════════
-async function submitFiche() {
-  const nom = document.getElementById('f-nom').value.trim();
-  const region = document.getElementById('f-region').value;
-
-  if (!nom) { alert('Veuillez entrer le nom de l\'établissement.'); return; }
-  if (!region) { alert('Veuillez sélectionner une région.'); return; }
-
-  const fiche = {
-    id: Date.now().toString(),
-    date: new Date().toLocaleDateString('fr-FR'),
-    nom,
-    region,
-    dept: document.getElementById('f-dept').value,
-    type: document.getElementById('f-type').value,
-    milieu: document.getElementById('f-milieu').value,
-    ens: parseInt(document.getElementById('f-ens').value) || 0,
-    eleves: parseInt(document.getElementById('f-eleves').value) || 0,
-    salles: parseInt(document.getElementById('f-salles').value) || 0,
-    bancs: parseInt(document.getElementById('f-bancs').value) || 0,
-    eau: document.getElementById('f-eau').value,
-    elec: document.getElementById('f-elec').value,
-    latrines: document.getElementById('f-latrines').value,
-    biblio: document.getElementById('f-biblio').value,
-    besoins: document.getElementById('f-besoins').value,
-    recenseur: document.getElementById('f-recenseur').value,
-    created_at: new Date().toISOString()
-  };
-
-  try {
-    fiches.push(fiche);
-    await saveFiches();
-
-    document.getElementById('f-nom').value = '';
-    document.getElementById('f-region').value = '';
-    document.getElementById('f-dept').value = '';
-    document.getElementById('f-ens').value = '';
-    document.getElementById('f-eleves').value = '';
-    document.getElementById('f-salles').value = '';
-    document.getElementById('f-bancs').value = '';
-    document.getElementById('f-besoins').value = '';
-    document.getElementById('f-recenseur').value = '';
-
-    const ok = document.getElementById('alert-ok');
-    ok.classList.add('show');
-    setTimeout(() => ok.classList.remove('show'), 4000);
-
-    refreshAllKPIs();
-    initBars();
-    renderTable();
-  } catch (e) {
-    console.error('Erreur soumission:', e);
-    const err = document.getElementById('alert-error');
-    err.classList.add('show');
-    setTimeout(() => err.classList.remove('show'), 4000);
-  }
-}
-
-// ════════════════════════════════════════════
-// TABLEAU
-// ════════════════════════════════════════════
-function renderTable() {
-  const tbody = document.getElementById('data-tbody');
-  if (fiches.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem;">Aucune fiche soumise pour l\'instant.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = fiches.slice().reverse().map((f, i) => {
-    const pillEau = f.eau === 'Oui' ? 'pill-green' : f.eau === 'Partiel' ? 'pill-amber' : 'pill-red';
-    const pillElec = f.elec === 'Oui' ? 'pill-green' : f.elec === 'Partiel' ? 'pill-amber' : 'pill-red';
-    return `<tr>
-      <td style="color:var(--muted);font-family:'DM Mono';font-size:12px;">${fiches.length - i}</td>
-      <td style="font-weight:600">${f.nom}</td>
-      <td>${f.region}</td>
-      <td><span class="pill pill-green" style="font-size:11px;">${f.type.substring(0, 15)}...</span></td>
-      <td style="font-family:'DM Mono';font-size:12px">${f.eleves.toLocaleString('fr-FR')}</td>
-      <td style="font-family:'DM Mono';font-size:12px">${f.ens}</td>
-      <td><span class="pill ${pillEau}" style="font-size:11px">${f.eau}</span></td>
-      <td><span class="pill ${pillElec}" style="font-size:11px">${f.elec}</span></td>
-      <td><span class="pill pill-green" style="font-size:11px">✓ Soumise</span></td>
-    </tr>`;
-  }).join('');
-}
-
-// ════════════════════════════════════════════
-// STATS
-// ════════════════════════════════════════════
-function updateStats() {
-  if (fiches.length === 0) {
-    document.getElementById('analyse-table').innerHTML = '<p style="color:var(--muted); font-size:13px; text-align: center; padding: 2rem;">Soumettez des fiches pour voir l\'analyse apparaître ici 📈</p>';
-    return;
-  }
-
-  const totalEleves = fiches.reduce((s, f) => s + f.eleves, 0);
-  const totalEns = fiches.reduce((s, f) => s + f.ens, 0);
-  const ratio = totalEns > 0 ? (totalEleves / totalEns).toFixed(1) : 'N/A';
-  const pctEau = Math.round(fiches.filter(f => f.eau === 'Oui').length / fiches.length * 100);
-  const pctElec = Math.round(fiches.filter(f => f.elec === 'Oui').length / fiches.length * 100);
-
-  document.getElementById('analyse-table').innerHTML = `
-    <table>
-      <thead><tr><th>Indicateur</th><th>Valeur</th><th>Interprétation</th></tr></thead>
-      <tbody>
-        <tr><td>Fiches soumises</td><td>${fiches.length}</td><td>—</td></tr>
-        <tr><td>Total élèves</td><td>${totalEleves.toLocaleString('fr-FR')}</td><td>—</td></tr>
-        <tr><td>Total enseignants</td><td>${totalEns.toLocaleString('fr-FR')}</td><td>—</td></tr>
-        <tr><td>Ratio élèves/ens.</td><td>${ratio}</td><td>${ratio > 25 ? '⚠ Supérieur à la norme ONU (25)' : '✓ Conforme'}</td></tr>
-        <tr><td>% Accès eau</td><td>${pctEau}%</td><td>${pctEau < 80 ? '⚠ Insuffisant' : '✓ Bon'}</td></tr>
-        <tr><td>% Électrifiées</td><td>${pctElec}%</td><td>${pctElec < 50 ? '✗ Critique' : '⚠ Partiel'}</td></tr>
-      </tbody>
-    </table>`;
-}
-
-// ════════════════════════════════════════════
-// CHARTS
-// ════════════════════════════════════════════
-let chartTypeInst = null;
-let chartMilieuInst = null;
-
-function initCharts() {
-  const types = {};
-  const milieux = { Urbain: 0, 'Semi-urbain': 0, Rural: 0 };
-
-  if (fiches.length > 0) {
-    fiches.forEach(f => {
-      types[f.type] = (types[f.type] || 0) + 1;
-      milieux[f.milieu] = (milieux[f.milieu] || 0) + 1;
+  function updateNeedsBars() {
+    const needsCounts = {};
+    allData.forEach(d => {
+      if (d.besoins) {
+        d.besoins.split(',').forEach(need => {
+          const clean = need.trim();
+          if (clean) needsCounts[clean] = (needsCounts[clean] || 0) + 1;
+        });
+      }
     });
+
+    const sorted = Object.entries(needsCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    const barBesoins = document.getElementById('bar-besoins');
+
+    if (sorted.length === 0) {
+      barBesoins.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 2rem;">Aucune donnée pour l\'instant</p>';
+      return;
+    }
+
+    const maxCount = Math.max(...sorted.map(([_, count]) => count), 1);
+    barBesoins.innerHTML = sorted.map(([need, count]) => `
+      <div class="bar-row">
+        <div class="bar-name">${need}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width: ${(count / maxCount) * 100}%">
+            <span>${count}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
   }
 
-  const COLORS = ['#1D9E75', '#5DCAA5', '#EF9F27', '#E24B4A', '#378ADD', '#9FE1CB'];
-
-  if (chartTypeInst) chartTypeInst.destroy();
-  if (chartMilieuInst) chartMilieuInst.destroy();
-
-  const ctxType = document.getElementById('chartType');
-  const ctxMilieu = document.getElementById('chartMilieu');
-
-  if (!ctxType || !ctxMilieu) return;
-
-  chartTypeInst = new Chart(ctxType, {
-    type: 'doughnut',
-    data: {
-      labels: Object.keys(types).filter(k => types[k] > 0) || ['Pas de données'],
-      datasets: [{
-        data: Object.values(types).filter(v => v > 0) || [0],
-        backgroundColor: COLORS,
-        borderWidth: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { font: { family: 'DM Sans', size: 12 }, boxWidth: 12, padding: 12 }
-        }
-      }
+  function updateTable() {
+    const tbody = document.getElementById('data-tbody');
+    
+    if (allData.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);">Aucune donnée pour l\'instant</td></tr>';
+      return;
     }
-  });
 
-  chartMilieuInst = new Chart(ctxMilieu, {
-    type: 'pie',
-    data: {
-      labels: Object.keys(milieux),
-      datasets: [{
-        data: Object.values(milieux),
-        backgroundColor: ['#1D9E75', '#EF9F27', '#5DCAA5'],
-        borderWidth: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { font: { family: 'DM Sans', size: 12 }, boxWidth: 12, padding: 12 }
-        }
-      }
-    }
-  });
-}
-
-// ════════════════════════════════════════════
-// EXPORT
-// ════════════════════════════════════════════
-function exportCSV() {
-  if (fiches.length === 0) { alert('Aucune fiche à exporter.'); return; }
-  const headers = ['ID', 'Date', 'Nom', 'Région', 'Département', 'Type', 'Milieu', 'Enseignants', 'Élèves', 'Salles', 'Tables-bancs', 'Eau', 'Électricité', 'Latrines', 'Bibliothèque', 'Besoins', 'Recenseur'];
-  const rows = fiches.map(f => [f.id, f.date, `"${f.nom}"`, f.region, f.dept, f.type, f.milieu, f.ens, f.eleves, f.salles, f.bancs, f.eau, f.elec, f.latrines, f.biblio, `"${f.besoins}"`, f.recenseur]);
-  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
-  dl('censotech_donnees.csv', 'text/csv', csv);
-}
-
-function exportJSON() {
-  if (fiches.length === 0) { alert('Aucune fiche à exporter.'); return; }
-  dl('censotech_donnees.json', 'application/json', JSON.stringify(fiches, null, 2));
-}
-
-function dl(name, type, content) {
-  const a = document.createElement('a');
-  a.href = 'data:' + type + ';charset=utf-8,' + encodeURIComponent(content);
-  a.download = name;
-  a.click();
-}
-
-function printReport() { window.print(); }
-
-function renderReport() {
-  if (fiches.length === 0) {
-    document.getElementById('report-content').innerHTML = '<p style="color: var(--muted); text-align: center; padding: 2rem;">Soumettez des fiches pour générer le rapport 📊</p>';
-    return;
+    tbody.innerHTML = allData.map(d => `
+      <tr>
+        <td><span class="pill pill-green">${d.region}</span></td>
+        <td>${d.nom_ecole}</td>
+        <td>${d.nb_eleves}</td>
+        <td>${d.nb_enseignants}</td>
+        <td>${d.besoins ? d.besoins.substring(0, 30) + '...' : '-'}</td>
+        <td>${new Date(d.created_at).toLocaleDateString('fr-FR')}</td>
+      </tr>
+    `).join('');
   }
 
-  const total = fiches.length;
-  const totalEl = fiches.reduce((s, f) => s + f.eleves, 0);
-  const totalEn = fiches.reduce((s, f) => s + f.ens, 0);
-  const ratio = totalEn > 0 ? (totalEl / totalEn).toFixed(1) : 'N/A';
-  const pctEau = Math.round(fiches.filter(f => f.eau === 'Oui').length / total * 100);
-  const pctElec = Math.round(fiches.filter(f => f.elec === 'Oui').length / total * 100);
+  function updateRegions() {
+    const regionList = document.getElementById('region-list');
+    const regionData = {};
 
-  document.getElementById('report-content').innerHTML = `
-    <h3 style="font-size:16px;font-weight:700;margin-bottom:1rem;">RAPPORT DE SYNTHÈSE — CensoTech Cameroun</h3>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:1.5rem;">
-      <strong>Réalisé par :</strong> KAMGAING FOTSO Herman Gaetan |
-      <strong>Matricule :</strong> 24H2030 |
-      <strong>UE :</strong> INF232 |
-      <strong>Année :</strong> 2025/2026 |
-      <strong>Date :</strong> ${new Date().toLocaleDateString('fr-FR', {year:'numeric',month:'long',day:'numeric'})}
-    </p>
-    <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border);" />
-    <p><strong>📊 Fiches collectées :</strong> ${total}</p>
-    <p><strong>👨‍🎓 Total élèves recensés :</strong> ${totalEl.toLocaleString('fr-FR')}</p>
-    <p><strong>👨‍🏫 Total enseignants recensés :</strong> ${totalEn.toLocaleString('fr-FR')}</p>
-    <p><strong>📈 Ratio élèves/enseignant :</strong> ${ratio} ${ratio > 25 ? '(⚠ supérieur à la norme ONU de 25)' : '(✓ conforme)'}</p>
-    <p style="margin-top:1rem;"><strong>💧 Accès eau potable :</strong> ${pctEau}% des établissements — objectif 100%</p>
-    <p><strong>⚡ Électrification :</strong> ${pctElec}% des établissements — objectif 100%</p>
-    <p style="margin-top:1.5rem;color:var(--muted);font-size:12px;">© 2025 CensoTech Cameroun - Rapport produit dans le cadre du TP INF232. Année académique 2025/2026</p>`;
-}
+    allData.forEach(d => {
+      if (!regionData[d.region]) {
+        regionData[d.region] = { ecoles: 0, eleves: 0, enseignants: 0 };
+      }
+      regionData[d.region].ecoles += 1;
+      regionData[d.region].eleves += d.nb_eleves || 0;
+      regionData[d.region].enseignants += d.nb_enseignants || 0;
+    });
 
-// ════════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', initApp);
+    if (Object.keys(regionData).length === 0) {
+      regionList.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--muted);padding:2rem;">Aucune donnée régionale pour l\'instant</p>';
+      return;
+    }
+
+    regionList.innerHTML = Object.entries(regionData)
+      .sort((a, b) => b[1].ecoles - a[1].ecoles)
+      .map(([region, data]) => `
+        <div class="region-card">
+          <div class="region-name">🗺️ ${region}</div>
+          <div class="region-row"><span>Écoles</span> <strong>${data.ecoles}</strong></div>
+          <div class="region-row"><span>Élèves</span> <strong>${data.eleves}</strong></div>
+          <div class="region-row"><span>Enseignants</span> <strong>${data.enseignants}</strong></div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${Math.min((data.ecoles / 50) * 100, 100)}%"></div>
+          </div>
+        </div>
+      `).join('');
+  }
+
+  // ═══ EXPORT ═══
+  function exportCSV() {
+    let csv = 'Région,Établissement,Élèves,Enseignants,Besoins,Date\n';
+    allData.forEach(d => {
+      csv += `"${d.region}","${d.nom_ecole}",${d.nb_eleves},${d.nb_enseignants},"${d.besoins || ''}",${new Date(d.created_at).toLocaleDateString('fr-FR')}\n`;
+    });
+    downloadFile(csv, 'censotech-donnees.csv', 'text/csv');
+  }
+
+  function exportJSON() {
+    downloadFile(JSON.stringify(allData, null, 2), 'censotech-donnees.json', 'application/json');
+  }
+
+  function downloadFile(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ═══ INIT & REALTIME ═══
+  loadData();
+
+  // Real-time updates
+  supabaseClient
+    .channel('fiches')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'fiches' }, () => loadData())
+    .subscribe();
+
+  // Refresh every 30 seconds
+  setInterval(loadData, 30000);
 </script>
+
 </body>
 </html>
