@@ -1562,6 +1562,22 @@
   // Refresh every 30 seconds
   setInterval(loadData, 30000);
 </script>
+// Récupérer les paramètres de l'URL
+const params = new URLSearchParams(window.location.search);
+const nom = params.get('nom') || 'KAMGAING FOTSO Herman G.';
+const matricule = params.get('matricule') || '24H2030';
+const ue = params.get('ue') || 'INF232';
 
+// Mettre à jour le sidebar
+document.querySelector('.sidebar-footer').innerHTML = `
+  ${nom}<br>
+  <strong>Matricule :</strong> ${matricule}<br>
+  <strong>UE :</strong> ${ue}<br>
+  <strong>Année :</strong> 2025/2026
+  <div class="copyright">
+    © 2025 CensoTech Cameroun<br>
+    Tous droits réservés
+  </div>
+`;
 </body>
 </html>
