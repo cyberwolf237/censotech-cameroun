@@ -759,6 +759,27 @@
       box-shadow: var(--shadow-md);
     }
 
+    .btn-danger {
+      padding: 10px 18px;
+      border: 1.5px solid var(--danger);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--danger);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-danger:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
     .copyright {
       text-align: center;
       font-size: 11px;
@@ -766,6 +787,123 @@
       margin-top: 1rem;
       padding-top: 1rem;
       border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* MODAL STYLES */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-content {
+      background: var(--surface);
+      padding: 2rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 90%;
+      max-width: 500px;
+      margin: auto;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .close-btn:hover { color: var(--danger); }
+
+    /* ADMIN TABLE STYLES */
+    .admin-table {
+      width: 100%;
+      margin-top: 1.5rem;
+    }
+
+    .admin-actions {
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .btn-edit {
+      padding: 6px 12px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-edit:hover { opacity: 0.8; }
+
+    .btn-del {
+      padding: 6px 12px;
+      background: var(--danger);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-del:hover { opacity: 0.8; }
+
+    /* PRINT STYLES */
+    @media print {
+      .sidebar, .topbar, .hamburger, .export-row, .btn-primary, .btn-sec, .modal, .admin-panel {
+        display: none !important;
+      }
+
+      body {
+        background: white;
+      }
+
+      .content {
+        padding: 0;
+      }
+
+      .card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        page-break-inside: avoid;
+        margin-bottom: 1rem;
+      }
+
+      .stat-card {
+        page-break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ccc;
+      }
+
+      table {
+        page-break-inside: avoid;
+      }
+
+      .printable-content {
+        font-size: 12px;
+        line-height: 1.6;
+      }
     }
 
     @media (max-width: 768px) {
@@ -842,6 +980,11 @@
       .topbar-title {
         font-size: 15px;
       }
+
+      .modal-content {
+        width: 95%;
+        padding: 1.5rem;
+      }
     }
 
     @media (max-width: 480px) {
@@ -886,21 +1029,9 @@
       .bar-fill span {
         font-size: 11px;
       }
-    }
 
-    @media print {
-      .sidebar, .topbar, .hamburger, .export-row, .btn-primary, .btn-sec {
-        display: none !important;
-      }
-
-      .content {
-        padding: 0;
-      }
-
-      .card {
-        box-shadow: none;
-        border: none;
-        page-break-inside: avoid;
+      .form-grid {
+        gap: 1rem;
       }
     }
   </style>
@@ -936,6 +1067,9 @@
       </div>
       <div class="nav-item" onclick="goTo('export', this)">
         <span class="nav-icon">📤</span> Export
+      </div>
+      <div class="nav-item" onclick="openAdminModal()">
+        <span class="nav-icon">🔐</span> Admin
       </div>
     </nav>
 
@@ -976,17 +1110,17 @@
           <div class="stat-card">
             <div class="stat-label">📚 Écoles recensées</div>
             <div class="stat-value" id="kpi-ecoles">—</div>
-            <div class="stat-delta">En attente de données</div>
+            <div class="stat-delta">Nombre total</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">👨‍🏫 Enseignants</div>
             <div class="stat-value" id="kpi-ens">—</div>
-            <div class="stat-delta">En attente de données</div>
+            <div class="stat-delta">Nombre total</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">👨‍🎓 Élèves enregistrés</div>
             <div class="stat-value" id="kpi-eleves">—</div>
-            <div class="stat-delta">En attente de données</div>
+            <div class="stat-delta">Nombre total</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">🗺️ Régions couvertes</div>
@@ -1153,24 +1287,38 @@
           <div class="stat-grid" style="margin:0;">
             <div class="stat-card">
               <div class="stat-label">Ratio élèves/enseignant</div>
-              <div class="stat-value" id="indicator-ratio">—</div>
-              <div class="stat-delta warn" id="indicator-ratio-note">Données insuffisantes</div>
+              <div class="stat-value" id="stat-indicator-ratio">—</div>
+              <div class="stat-delta warn" id="stat-indicator-ratio-note">Données insuffisantes</div>
             </div>
             <div class="stat-card">
               <div class="stat-label">% Accès eau potable</div>
-              <div class="stat-value" id="indicator-eau">—</div>
+              <div class="stat-value" id="stat-indicator-eau">—</div>
               <div class="stat-delta warn">Objectif: 100%</div>
             </div>
             <div class="stat-card">
               <div class="stat-label">% Électrifiées</div>
-              <div class="stat-value" id="indicator-elec">—</div>
+              <div class="stat-value" id="stat-indicator-elec">—</div>
               <div class="stat-delta bad">Objectif: 100%</div>
             </div>
             <div class="stat-card">
               <div class="stat-label">% Latrines fonctionnelles</div>
-              <div class="stat-value" id="indicator-latrines">—</div>
+              <div class="stat-value" id="stat-indicator-latrines">—</div>
               <div class="stat-delta bad">Objectif: 100%</div>
             </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📈 Graphique des écoles par région</div>
+          <div class="chart-wrap">
+            <canvas id="regionChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📊 Distribution par type d'établissement</div>
+          <div class="chart-wrap">
+            <canvas id="typeChart"></canvas>
           </div>
         </div>
       </div>
@@ -1218,9 +1366,36 @@
             <button class="btn-sec" onclick="exportJSON()">
               <i class="fas fa-file-code"></i> Télécharger JSON
             </button>
-            <button class="btn-sec" onclick="window.print()">
-              <i class="fas fa-print"></i> Imprimer
+            <button class="btn-sec" onclick="printReport()">
+              <i class="fas fa-print"></i> Imprimer rapport
             </button>
+          </div>
+        </div>
+
+        <div id="print-area" style="display:none;">
+          <div class="card">
+            <div class="card-title">📋 Rapport CensoTech 2025/2026</div>
+            <div class="printable-content">
+              <h3>Résumé exécutif</h3>
+              <div class="stat-grid" id="print-stats"></div>
+              
+              <h3 style="margin-top:2rem;">Données détaillées</h3>
+              <table id="print-table">
+                <thead>
+                  <tr>
+                    <th>Région</th>
+                    <th>Établissement</th>
+                    <th>Type</th>
+                    <th>Élèves</th>
+                    <th>Enseignants</th>
+                    <th>Eau</th>
+                    <th>Électricité</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody id="print-tbody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -1228,6 +1403,101 @@
     </div>
   </div>
 
+</div>
+
+<!-- ═══ ADMIN MODAL ═══ -->
+<div id="adminModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>🔐 Panneau Administrateur</span>
+      <button class="close-btn" onclick="closeAdminModal()">&times;</button>
+    </div>
+    <div id="admin-login">
+      <div class="form-group full">
+        <label>Mot de passe administrateur</label>
+        <input type="password" id="admin-password" placeholder="Entrez le mot de passe" />
+      </div>
+      <button class="btn-primary" style="grid-column: 1/-1;" onclick="adminLogin()">Se connecter</button>
+    </div>
+    <div id="admin-panel" style="display:none;">
+      <p style="margin-bottom:1.5rem;color:var(--muted);text-align:center;">Bienvenue dans le panneau administrateur!</p>
+      <button class="btn-sec" style="width:100%;margin-bottom:1rem;" onclick="showAdminData()">
+        <i class="fas fa-list"></i> Gérer les données
+      </button>
+      <button class="btn-sec" style="width:100%;margin-bottom:1rem;" onclick="showAdminStats()">
+        <i class="fas fa-chart-pie"></i> Statistiques avancées
+      </button>
+      <button class="btn-danger" style="width:100%;" onclick="adminLogout()">
+        <i class="fas fa-sign-out-alt"></i> Se déconnecter
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EDIT MODAL ═══ -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>✏️ Modifier l'enregistrement</span>
+      <button class="close-btn" onclick="closeEditModal()">&times;</button>
+    </div>
+    <div class="form-grid" id="edit-form" style="display:none;">
+      <input type="hidden" id="edit-id" />
+      <div class="form-group">
+        <label>Région</label>
+        <select id="edit-region">
+          <option value="Adamaoua">Adamaoua</option>
+          <option value="Centre">Centre</option>
+          <option value="Est">Est</option>
+          <option value="Extrême-Nord">Extrême-Nord</option>
+          <option value="Littoral">Littoral</option>
+          <option value="Nord">Nord</option>
+          <option value="Nord-Ouest">Nord-Ouest</option>
+          <option value="Ouest">Ouest</option>
+          <option value="Sud">Sud</option>
+          <option value="Sud-Ouest">Sud-Ouest</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Établissement</label>
+        <input type="text" id="edit-nom-ecole" />
+      </div>
+      <div class="form-group">
+        <label>Élèves</label>
+        <input type="number" id="edit-nb-eleves" min="0" />
+      </div>
+      <div class="form-group">
+        <label>Enseignants</label>
+        <input type="number" id="edit-nb-enseignants" min="0" />
+      </div>
+      <button class="btn-primary" onclick="saveEdit()">💾 Sauvegarder</button>
+      <button class="btn-sec" style="grid-column:1/-1;" onclick="closeEditModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN DATA MODAL ═══ -->
+<div id="adminDataModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>🗂️ Gestion des données</span>
+      <button class="close-btn" onclick="closeAdminDataModal()">&times;</button>
+    </div>
+    <div class="table-wrap">
+      <table id="admin-data-table">
+        <thead>
+          <tr>
+            <th>Région</th>
+            <th>Établissement</th>
+            <th>Élèves</th>
+            <th>Enseignants</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="admin-data-tbody"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1239,6 +1509,8 @@
   const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let allData = [];
+  let adminAuthenticated = false;
+  let charts = {};
 
   // ═══ NAV & UI ═══
   function goTo(section, element) {
@@ -1259,6 +1531,10 @@
     
     document.getElementById('page-title').textContent = titles[section] || 'CensoTech';
     closeMobileMenu();
+
+    if (section === 'stats') {
+      setTimeout(() => updateCharts(), 100);
+    }
   }
 
   function toggleMobileMenu() {
@@ -1319,12 +1595,10 @@
 
       showAlert('success', '✅ Fiche enregistrée avec succès!');
       
-      // Clear form
       document.querySelectorAll('#form-collecte input, #form-collecte textarea, #form-collecte select').forEach(el => {
         if (el.type !== 'button') el.value = '';
       });
 
-      // Reload data
       setTimeout(() => loadData(), 1000);
       
     } catch (error) {
@@ -1369,6 +1643,7 @@
       updateDashboard();
       updateTable();
       updateRegions();
+      updateStats();
     } catch (error) {
       console.error('Erreur chargement:', error);
     }
@@ -1385,26 +1660,49 @@
     document.getElementById('kpi-ens').textContent = totalEnseignants;
     document.getElementById('kpi-regions').textContent = `${uniqueRegions} / 10`;
 
+    updateIndicators();
+    updateRegionBars();
+    updateNeedsBars();
+  }
+
+  function updateIndicators() {
+    const totalEcoles = allData.length;
+    const totalEleves = allData.reduce((sum, d) => sum + (d.nb_eleves || 0), 0);
+    const totalEnseignants = allData.reduce((sum, d) => sum + (d.nb_enseignants || 0), 0);
+
     if (totalEnseignants > 0) {
       const ratio = (totalEleves / totalEnseignants).toFixed(1);
-      document.getElementById('indicator-ratio').textContent = ratio;
-      document.getElementById('indicator-ratio-note').textContent = ratio > 50 ? '⚠️ Élevé' : '✓ Normal';
+      ['indicator-ratio', 'stat-indicator-ratio'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = ratio;
+      });
+      const ratioNote = ratio > 50 ? '⚠️ Élevé' : '✓ Normal';
+      ['indicator-ratio-note', 'stat-indicator-ratio-note'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = ratioNote;
+      });
     }
 
     const eauCount = allData.filter(d => d.eau === 'Oui').length;
     const eauPercent = totalEcoles > 0 ? ((eauCount / totalEcoles) * 100).toFixed(0) : 0;
-    document.getElementById('indicator-eau').textContent = eauPercent + '%';
+    ['indicator-eau', 'stat-indicator-eau'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = eauPercent + '%';
+    });
 
     const elecCount = allData.filter(d => d.electricite === 'Oui').length;
     const elecPercent = totalEcoles > 0 ? ((elecCount / totalEcoles) * 100).toFixed(0) : 0;
-    document.getElementById('indicator-elec').textContent = elecPercent + '%';
+    ['indicator-elec', 'stat-indicator-elec'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = elecPercent + '%';
+    });
 
     const latrinesCount = allData.filter(d => d.latrines === 'Oui').length;
     const latrinesPercent = totalEcoles > 0 ? ((latrinesCount / totalEcoles) * 100).toFixed(0) : 0;
-    document.getElementById('indicator-latrines').textContent = latrinesPercent + '%';
-
-    updateRegionBars();
-    updateNeedsBars();
+    ['indicator-latrines', 'stat-indicator-latrines'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = latrinesPercent + '%';
+    });
   }
 
   function updateRegionBars() {
@@ -1524,17 +1822,216 @@
           <div class="region-row"><span>Enseignants</span> <strong>${data.enseignants}</strong></div>
           <div class="region-row"><span>Avec eau</span> <strong>${data.eau}/${data.ecoles}</strong></div>
           <div class="progress-bar">
-            <div class="progress-fill" style="width: ${Math.min((data.ecoles / 50) * 100, 100)}%"></div>
+            <div class="progress-fill" style="width: ${Math.min((data.eau / data.ecoles) * 100, 100)}%"></div>
           </div>
         </div>
       `).join('');
   }
 
-  // ═══ EXPORT ═���═
+  function updateStats() {
+    updateIndicators();
+  }
+
+  function updateCharts() {
+    const regionCounts = {};
+    const typeCounts = {};
+
+    allData.forEach(d => {
+      regionCounts[d.region] = (regionCounts[d.region] || 0) + 1;
+      if (d.type_etab) {
+        typeCounts[d.type_etab] = (typeCounts[d.type_etab] || 0) + 1;
+      }
+    });
+
+    const regionCtx = document.getElementById('regionChart');
+    if (regionCtx) {
+      if (charts.region) charts.region.destroy();
+      charts.region = new Chart(regionCtx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(regionCounts),
+          datasets: [{
+            label: 'Écoles par région',
+            data: Object.values(regionCounts),
+            backgroundColor: '#1D9E75',
+            borderColor: '#0F6E56',
+            borderWidth: 2,
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    const typeCtx = document.getElementById('typeChart');
+    if (typeCtx) {
+      if (charts.type) charts.type.destroy();
+      charts.type = new Chart(typeCtx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(typeCounts),
+          datasets: [{
+            data: Object.values(typeCounts),
+            backgroundColor: ['#1D9E75', '#EF9F27', '#E24B4A', '#6B7280'],
+            borderColor: '#fff',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+    }
+  }
+
+  // ═══ ADMIN FUNCTIONS ═══
+  function openAdminModal() {
+    document.getElementById('adminModal').classList.add('active');
+    document.getElementById('admin-login').style.display = 'block';
+    document.getElementById('admin-panel').style.display = 'none';
+    adminAuthenticated = false;
+  }
+
+  function closeAdminModal() {
+    document.getElementById('adminModal').classList.remove('active');
+    document.getElementById('admin-password').value = '';
+    adminAuthenticated = false;
+  }
+
+  function adminLogin() {
+    const password = document.getElementById('admin-password').value;
+    if (password === 'admin') {
+      adminAuthenticated = true;
+      document.getElementById('admin-login').style.display = 'none';
+      document.getElementById('admin-panel').style.display = 'block';
+    } else {
+      alert('❌ Mot de passe incorrect');
+    }
+  }
+
+  function adminLogout() {
+    adminAuthenticated = false;
+    closeAdminModal();
+  }
+
+  function showAdminData() {
+    if (!adminAuthenticated) return;
+    const tbody = document.getElementById('admin-data-tbody');
+    
+    if (allData.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Aucune donnée</td></tr>';
+      document.getElementById('adminDataModal').classList.add('active');
+      return;
+    }
+
+    tbody.innerHTML = allData.map((d, idx) => `
+      <tr>
+        <td>${d.region}</td>
+        <td>${d.nom_ecole}</td>
+        <td>${d.nb_eleves}</td>
+        <td>${d.nb_enseignants}</td>
+        <td>
+          <div class="admin-actions">
+            <button class="btn-edit" onclick="editRecord(${d.id})">✏️ Modifier</button>
+            <button class="btn-del" onclick="deleteRecord(${d.id})">🗑️ Supprimer</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    document.getElementById('adminDataModal').classList.add('active');
+  }
+
+  function editRecord(id) {
+    const record = allData.find(d => d.id === id);
+    if (!record) return;
+
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-region').value = record.region;
+    document.getElementById('edit-nom-ecole').value = record.nom_ecole;
+    document.getElementById('edit-nb-eleves').value = record.nb_eleves;
+    document.getElementById('edit-nb-enseignants').value = record.nb_enseignants;
+    document.getElementById('edit-form').style.display = 'grid';
+    document.getElementById('editModal').classList.add('active');
+  }
+
+  async function saveEdit() {
+    const id = parseInt(document.getElementById('edit-id').value);
+    const updates = {
+      region: document.getElementById('edit-region').value,
+      nom_ecole: document.getElementById('edit-nom-ecole').value,
+      nb_eleves: parseInt(document.getElementById('edit-nb-eleves').value) || 0,
+      nb_enseignants: parseInt(document.getElementById('edit-nb-enseignants').value) || 0
+    };
+
+    try {
+      const { error } = await supabaseClient
+        .from('fiches')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw new Error(error.message);
+      
+      alert('✅ Enregistrement mis à jour');
+      closeEditModal();
+      await loadData();
+      showAdminData();
+    } catch (error) {
+      alert('❌ Erreur: ' + error.message);
+    }
+  }
+
+  async function deleteRecord(id) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cet enregistrement?')) return;
+
+    try {
+      const { error } = await supabaseClient
+        .from('fiches')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw new Error(error.message);
+      
+      alert('✅ Enregistrement supprimé');
+      await loadData();
+      showAdminData();
+    } catch (error) {
+      alert('❌ Erreur: ' + error.message);
+    }
+  }
+
+  function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+    document.getElementById('edit-form').style.display = 'none';
+  }
+
+  function closeAdminDataModal() {
+    document.getElementById('adminDataModal').classList.remove('active');
+  }
+
+  function showAdminStats() {
+    if (!adminAuthenticated) return;
+    alert(`📊 STATISTIQUES AVANCÉES\n\nTotal écoles: ${allData.length}\nTotal élèves: ${allData.reduce((s, d) => s + (d.nb_eleves || 0), 0)}\nTotal enseignants: ${allData.reduce((s, d) => s + (d.nb_enseignants || 0), 0)}\nRégions: ${new Set(allData.map(d => d.region)).size}`);
+  }
+
+  // ═══ EXPORT ═══
   function exportCSV() {
     let csv = 'Région,Établissement,Type,Statut,Élèves,Enseignants,Salles,Bureaux,Eau,Électricité,Latrines,Internet,Besoins,Date\n';
     allData.forEach(d => {
-      csv += `"${d.region}","${d.nom_ecole}","${d.type_etab || ''}","${d.statut || ''}",${d.nb_eleves},${d.nb_enseignants},${d.nb_salles || 0},${d.nb_bureaux || 0},"${d.eau || ''}","${d.electricite || ''}","${d.latrines || ''}","${d.internet || ''}","${d.besoins || ''}",${d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : ''}\n`;
+      csv += `"${d.region}","${d.nom_ecole}","${d.type_etab || ''}","${d.statut || ''}",${d.nb_eleves},${d.nb_enseignants},${d.nb_salles || 0},${d.nb_bureaux || 0},"${d.eau || ''}","${d.electricite || ''}","${d.latrines || ''}","${d.internet || ''}","${(d.besoins || '').replace(/"/g, '""')}",${d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : ''}\n`;
     });
     downloadFile(csv, 'censotech-donnees.csv', 'text/csv');
   }
@@ -1543,41 +2040,17 @@
     downloadFile(JSON.stringify(allData, null, 2), 'censotech-donnees.json', 'application/json');
   }
 
-  function downloadFile(content, filename, type) {
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+  function printReport() {
+    const printStats = document.getElementById('print-stats');
+    const printTbody = document.getElementById('print-tbody');
 
-  // ═══ INIT & REALTIME ═══
-  console.log('🚀 CensoTech Initializing...');
-  console.log('Supabase URL:', SUPABASE_URL);
-  
-  loadData();
+    const totalEcoles = allData.length;
+    const totalEleves = allData.reduce((sum, d) => sum + (d.nb_eleves || 0), 0);
+    const totalEnseignants = allData.reduce((sum, d) => sum + (d.nb_enseignants || 0), 0);
 
-  // Refresh every 30 seconds
-  setInterval(loadData, 30000);
-</script>
-// Récupérer les paramètres de l'URL
-const params = new URLSearchParams(window.location.search);
-const nom = params.get('nom') || 'KAMGAING FOTSO Herman G.';
-const matricule = params.get('matricule') || '24H2030';
-const ue = params.get('ue') || 'INF232';
-
-// Mettre à jour le sidebar
-document.querySelector('.sidebar-footer').innerHTML = `
-  ${nom}<br>
-  <strong>Matricule :</strong> ${matricule}<br>
-  <strong>UE :</strong> ${ue}<br>
-  <strong>Année :</strong> 2025/2026
-  <div class="copyright">
-    © 2025 CensoTech Cameroun<br>
-    Tous droits réservés
-  </div>
-`;
-</body>
-</html>
+    printStats.innerHTML = `
+      <div class="stat-card">
+        <div class="stat-label">Total Écoles</div>
+        <div class="stat-value">${totalEcoles}</div>
+      </div>
+      <div`*
