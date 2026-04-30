@@ -1002,6 +1002,32 @@
             </div>
           </div>
         </div>
+
+        <div class="card">
+          <div class="card-title">📋 Indicateurs nationaux</div>
+          <div class="stat-grid" style="margin:0;">
+            <div class="stat-card">
+              <div class="stat-label">Ratio élèves/enseignant</div>
+              <div class="stat-value" id="indicator-ratio">—</div>
+              <div class="stat-delta warn" id="indicator-ratio-note">Données insuffisantes</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">% Accès eau potable</div>
+              <div class="stat-value" id="indicator-eau">—</div>
+              <div class="stat-delta warn">Objectif: 100%</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">% Électrifiées</div>
+              <div class="stat-value" id="indicator-elec">—</div>
+              <div class="stat-delta bad">Objectif: 100%</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">% Latrines fonctionnelles</div>
+              <div class="stat-value" id="indicator-latrines">—</div>
+              <div class="stat-delta bad">Objectif: 100%</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ═══ COLLECTE ═══ -->
@@ -1037,9 +1063,74 @@
               <label>Nombre d'enseignants</label>
               <input type="number" id="nb-enseignants" placeholder="0" min="0" required />
             </div>
+            <div class="form-group">
+              <label>Type d'établissement</label>
+              <select id="type-etab">
+                <option value="">Sélectionner...</option>
+                <option value="Primaire">Primaire</option>
+                <option value="Secondaire">Secondaire</option>
+                <option value="Technique">Technique</option>
+                <option value="Mixte">Mixte</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Statut</label>
+              <select id="statut">
+                <option value="">Sélectionner...</option>
+                <option value="Public">Public</option>
+                <option value="Privé">Privé</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Accès à l'eau potable ?</label>
+              <select id="eau">
+                <option value="">Sélectionner...</option>
+                <option value="Oui">Oui</option>
+                <option value="Non">Non</option>
+                <option value="Partiel">Partiel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Électrifiée ?</label>
+              <select id="elec">
+                <option value="">Sélectionner...</option>
+                <option value="Oui">Oui</option>
+                <option value="Non">Non</option>
+                <option value="Partiel">Partiel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Latrines fonctionnelles ?</label>
+              <select id="latrines">
+                <option value="">Sélectionner...</option>
+                <option value="Oui">Oui</option>
+                <option value="Non">Non</option>
+                <option value="Partiel">Partiel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Nombre de salles de classe</label>
+              <input type="number" id="nb-salles" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Nombre de bureaux</label>
+              <input type="number" id="nb-bureaux" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Internet disponible ?</label>
+              <select id="internet">
+                <option value="">Sélectionner...</option>
+                <option value="Oui">Oui</option>
+                <option value="Non">Non</option>
+              </select>
+            </div>
             <div class="form-group full">
               <label>Besoins identifiés</label>
-              <textarea id="besoins" placeholder="Exemple: Manque de pupitre, absence d'électricité..."></textarea>
+              <textarea id="besoins" placeholder="Exemple: Manque de pupitre, absence d'électricité, besoin de rénovation..."></textarea>
+            </div>
+            <div class="form-group full">
+              <label>Observations supplémentaires</label>
+              <textarea id="observations" placeholder="Remarques additionnelles..."></textarea>
             </div>
             <div class="alert-success" id="alert-success">✅ Fiche enregistrée avec succès!</div>
             <div class="alert-error" id="alert-error">❌ Erreur lors de l'enregistrement</div>
@@ -1068,6 +1159,11 @@
               <div class="stat-value" id="indicator-elec">—</div>
               <div class="stat-delta bad">Objectif: 100%</div>
             </div>
+            <div class="stat-card">
+              <div class="stat-label">% Latrines fonctionnelles</div>
+              <div class="stat-value" id="indicator-latrines">—</div>
+              <div class="stat-delta bad">Objectif: 100%</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1087,14 +1183,16 @@
                 <tr>
                   <th>Région</th>
                   <th>Établissement</th>
-                  <th>��lèves</th>
+                  <th>Type</th>
+                  <th>Élèves</th>
                   <th>Enseignants</th>
-                  <th>Besoins</th>
+                  <th>Eau</th>
+                  <th>Électricité</th>
                   <th>Date</th>
                 </tr>
               </thead>
               <tbody id="data-tbody">
-                <tr><td colspan="6" style="text-align:center;color:var(--muted);">Aucune donnée pour l'instant</td></tr>
+                <tr><td colspan="8" style="text-align:center;color:var(--muted);">Aucune donnée pour l'instant</td></tr>
               </tbody>
             </table>
           </div>
@@ -1177,9 +1275,18 @@
     const form = {
       region: document.getElementById('region').value,
       nom_ecole: document.getElementById('nom-ecole').value,
+      type_etab: document.getElementById('type-etab').value,
+      statut: document.getElementById('statut').value,
       nb_eleves: parseInt(document.getElementById('nb-eleves').value) || 0,
       nb_enseignants: parseInt(document.getElementById('nb-enseignants').value) || 0,
+      nb_salles: parseInt(document.getElementById('nb-salles').value) || 0,
+      nb_bureaux: parseInt(document.getElementById('nb-bureaux').value) || 0,
+      eau: document.getElementById('eau').value,
+      electricite: document.getElementById('elec').value,
+      latrines: document.getElementById('latrines').value,
+      internet: document.getElementById('internet').value,
       besoins: document.getElementById('besoins').value,
+      observations: document.getElementById('observations').value,
       created_at: new Date().toISOString()
     };
 
@@ -1256,6 +1363,18 @@
       document.getElementById('indicator-ratio-note').textContent = ratio > 50 ? '⚠️ Élevé' : '✓ Normal';
     }
 
+    const eauCount = allData.filter(d => d.eau === 'Oui').length;
+    const eauPercent = totalEcoles > 0 ? ((eauCount / totalEcoles) * 100).toFixed(0) : 0;
+    document.getElementById('indicator-eau').textContent = eauPercent + '%';
+
+    const elecCount = allData.filter(d => d.electricite === 'Oui').length;
+    const elecPercent = totalEcoles > 0 ? ((elecCount / totalEcoles) * 100).toFixed(0) : 0;
+    document.getElementById('indicator-elec').textContent = elecPercent + '%';
+
+    const latrinesCount = allData.filter(d => d.latrines === 'Oui').length;
+    const latrinesPercent = totalEcoles > 0 ? ((latrinesCount / totalEcoles) * 100).toFixed(0) : 0;
+    document.getElementById('indicator-latrines').textContent = latrinesPercent + '%';
+
     updateRegionBars();
     updateNeedsBars();
   }
@@ -1329,7 +1448,7 @@
     const tbody = document.getElementById('data-tbody');
     
     if (allData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);">Aucune donnée pour l\'instant</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);">Aucune donnée pour l\'instant</td></tr>';
       return;
     }
 
@@ -1337,9 +1456,11 @@
       <tr>
         <td><span class="pill pill-green">${d.region}</span></td>
         <td>${d.nom_ecole}</td>
+        <td>${d.type_etab || '-'}</td>
         <td>${d.nb_eleves}</td>
         <td>${d.nb_enseignants}</td>
-        <td>${d.besoins ? d.besoins.substring(0, 30) + '...' : '-'}</td>
+        <td>${d.eau || '-'}</td>
+        <td>${d.electricite || '-'}</td>
         <td>${new Date(d.created_at).toLocaleDateString('fr-FR')}</td>
       </tr>
     `).join('');
@@ -1351,11 +1472,13 @@
 
     allData.forEach(d => {
       if (!regionData[d.region]) {
-        regionData[d.region] = { ecoles: 0, eleves: 0, enseignants: 0 };
+        regionData[d.region] = { ecoles: 0, eleves: 0, enseignants: 0, eau: 0, elec: 0 };
       }
       regionData[d.region].ecoles += 1;
       regionData[d.region].eleves += d.nb_eleves || 0;
       regionData[d.region].enseignants += d.nb_enseignants || 0;
+      if (d.eau === 'Oui') regionData[d.region].eau += 1;
+      if (d.electricite === 'Oui') regionData[d.region].elec += 1;
     });
 
     if (Object.keys(regionData).length === 0) {
@@ -1371,6 +1494,7 @@
           <div class="region-row"><span>Écoles</span> <strong>${data.ecoles}</strong></div>
           <div class="region-row"><span>Élèves</span> <strong>${data.eleves}</strong></div>
           <div class="region-row"><span>Enseignants</span> <strong>${data.enseignants}</strong></div>
+          <div class="region-row"><span>Avec eau</span> <strong>${data.eau}/${data.ecoles}</strong></div>
           <div class="progress-bar">
             <div class="progress-fill" style="width: ${Math.min((data.ecoles / 50) * 100, 100)}%"></div>
           </div>
@@ -1380,9 +1504,9 @@
 
   // ═══ EXPORT ═══
   function exportCSV() {
-    let csv = 'Région,Établissement,Élèves,Enseignants,Besoins,Date\n';
+    let csv = 'Région,Établissement,Type,Statut,Élèves,Enseignants,Salles,Bureaux,Eau,Électricité,Latrines,Internet,Besoins,Date\n';
     allData.forEach(d => {
-      csv += `"${d.region}","${d.nom_ecole}",${d.nb_eleves},${d.nb_enseignants},"${d.besoins || ''}",${new Date(d.created_at).toLocaleDateString('fr-FR')}\n`;
+      csv += `"${d.region}","${d.nom_ecole}","${d.type_etab || ''}","${d.statut || ''}",${d.nb_eleves},${d.nb_enseignants},${d.nb_salles || 0},${d.nb_bureaux || 0},"${d.eau || ''}","${d.electricite || ''}","${d.latrines || ''}","${d.internet || ''}","${d.besoins || ''}",${new Date(d.created_at).toLocaleDateString('fr-FR')}\n`;
     });
     downloadFile(csv, 'censotech-donnees.csv', 'text/csv');
   }
