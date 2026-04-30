@@ -1093,8 +1093,8 @@
               <select id="eau">
                 <option value="">Sélectionner...</option>
                 <option value="Oui">Oui</option>
+                <option value="Partiellement">Partiellement</option>
                 <option value="Non">Non</option>
-                <option value="Partiel">Partiel</option>
               </select>
             </div>
             <div class="form-group">
@@ -1102,8 +1102,8 @@
               <select id="elec">
                 <option value="">Sélectionner...</option>
                 <option value="Oui">Oui</option>
+                <option value="Partiellement">Partiellement</option>
                 <option value="Non">Non</option>
-                <option value="Partiel">Partiel</option>
               </select>
             </div>
             <div class="form-group">
@@ -1111,8 +1111,8 @@
               <select id="latrines">
                 <option value="">Sélectionner...</option>
                 <option value="Oui">Oui</option>
+                <option value="Partiellement">Partiellement</option>
                 <option value="Non">Non</option>
-                <option value="Partiel">Partiel</option>
               </select>
             </div>
             <div class="form-group">
@@ -1309,6 +1309,8 @@
         return;
       }
 
+      console.log('📤 Envoi des données:', form);
+
       const { data, error } = await supabaseClient
         .from('fiches')
         .insert([form])
@@ -1318,7 +1320,8 @@
         throw new Error(error.message || 'Erreur lors de l\'insertion');
       }
 
-      showAlert('success', 'Fiche enregistrée avec succès!');
+      console.log('✅ Données enregistrées:', data);
+      showAlert('success', '✅ Fiche enregistrée avec succès!');
       
       // Clear form
       document.querySelectorAll('#form-collecte input, #form-collecte textarea, #form-collecte select').forEach(el => {
@@ -1329,16 +1332,18 @@
       setTimeout(() => loadData(), 1000);
       
     } catch (error) {
-      console.error('Erreur complète:', error);
+      console.error('❌ Erreur complète:', error);
       let msg = error.message || 'Erreur inconnue';
       
       // Diagnose common errors
       if (msg.includes('CORS') || msg.includes('fetch')) {
         msg = 'Erreur de connexion. Vérifiez votre connexion Internet.';
+      } else if (msg.includes('row-level security') || msg.includes('policy')) {
+        msg = 'Erreur de permission (RLS). Désactivez la RLS sur la table "fiches" dans Supabase.';
       } else if (msg.includes('relation') || msg.includes('table')) {
-        msg = 'Erreur de base de données. La table "fiches" n\'existe peut-être pas.';
-      } else if (msg.includes('permission') || msg.includes('policy')) {
-        msg = 'Erreur de permission. Contactez l\'administrateur.';
+        msg = 'Erreur: La table "fiches" n\'existe pas. Créez-la dans Supabase SQL Editor.';
+      } else if (msg.includes('permission')) {
+        msg = 'Erreur de permission. Vérifiez vos paramètres Supabase.';
       }
       
       showAlert('error', msg);
@@ -1372,16 +1377,17 @@
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Erreur chargement:', error.message);
+        console.error('❌ Erreur chargement:', error.message);
         return;
       }
 
       allData = data || [];
+      console.log('📊 Données chargées:', allData.length);
       updateDashboard();
       updateTable();
       updateRegions();
     } catch (error) {
-      console.error('Erreur chargement:', error);
+      console.error('❌ Erreur chargement:', error);
     }
   }
 
@@ -1567,6 +1573,7 @@
   // ═══ INIT & REALTIME ═══
   console.log('🚀 CensoTech Initializing...');
   console.log('Supabase URL:', SUPABASE_URL);
+  console.log('✅ Supabase Client connecté');
   
   loadData();
 
