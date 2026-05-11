@@ -2,8 +2,6 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#1D9E75" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CensoTech Cameroun — Recensement Éducatif 2025/2026</title>
   
@@ -12,13 +10,1797 @@
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } /* ...rest of css... */ </style>
+  
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:     #1D9E75;
+      --primary-dark: #0F6E56;
+      --primary-light: #E1F5EE;
+      --secondary:   #EF9F27;
+      --danger:      #E24B4A;
+      --success:     #1D9E75;
+      --warning:     #EF9F27;
+      --bg:          #F0F4F8;
+      --surface:     #FFFFFF;
+      --border:      rgba(0,0,0,0.08);
+      --text:        #1A1A1A;
+      --muted:       #6B7280;
+      --shadow-sm:   0 2px 8px rgba(0,0,0,0.08);
+      --shadow-md:   0 8px 24px rgba(0,0,0,0.12);
+      --shadow-lg:   0 16px 48px rgba(0,0,0,0.15);
+      --radius:      12px;
+      --radius-lg:   16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: linear-gradient(135deg, var(--bg) 0%, #E8F3F0 100%);
+      color: var(--text);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 20% 50%, rgba(29, 158, 117, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 80%, rgba(239, 159, 39, 0.08) 0%, transparent 50%);
+      animation: gradientShift 15s ease infinite;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-50px, -50px); }
+    }
+
+    .layout { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: linear-gradient(180deg, var(--primary-dark) 0%, #054030 100%);
+      display: flex;
+      flex-direction: column;
+      padding: 2rem 1.5rem;
+      gap: 8px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar.hidden { transform: translateX(-100%); }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      padding: 1rem 1rem 1.5rem;
+      border-bottom: 2px solid rgba(255,255,255,0.15);
+      margin-bottom: 1rem;
+      animation: slideDown 0.6s ease;
+    }
+
+    .brand-logo { font-size: 2rem; margin-bottom: 0.5rem; }
+
+    .brand-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.7);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      color: rgba(255,255,255,0.65);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      transform: translateX(4px);
+    }
+
+    .nav-item.active {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .nav-item.active::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #fff;
+      border-radius: 3px 0 0 3px;
+      animation: slideIn 0.3s ease;
+    }
+
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.15);
+      font-size: 10px;
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .year-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-top: 4px;
+      font-weight: 600;
+    }
+
+    .drawer-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 99;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .drawer-overlay.active { display: block; }
+
+    @media (max-width: 768px) {
+      .sidebar { 
+        position: fixed;
+        top: 56px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 56px);
+        padding: 1.5rem 1.5rem;
+        transform: translateY(-100%);
+        border-radius: 16px 16px 0 0;
+        overflow-y: auto;
+        z-index: 98;
+      }
+      .sidebar.mobile-active { transform: translateY(0); }
+      .drawer-overlay.active { display: block; }
+    }
+
+    .topbar {
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .hamburger {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: var(--primary);
+      color: white;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.3s ease;
+    }
+
+    .hamburger:hover {
+      background: var(--primary-dark);
+      transform: scale(1.05);
+    }
+
+    .hamburger.active {
+      background: var(--danger);
+    }
+
+    @media (max-width: 768px) {
+      .hamburger { display: flex; align-items: center; justify-content: center; }
+    }
+
+    .topbar-title {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--primary-light) 0%, rgba(29, 158, 117, 0.15) 100%);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--primary-light);
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.2); }
+    }
+
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content {
+      padding: 2rem;
+      animation: fadeIn 0.6s ease;
+      flex: 1;
+    }
+
+    .section {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .section.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+      from { width: 0; }
+      to { width: 3px; }
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.6s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary);
+    }
+
+    .stat-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 8px;
+    }
+
+    .stat-delta {
+      font-size: 12px;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    .stat-delta.warn { color: var(--warning); }
+    .stat-delta.bad { color: var(--danger); }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      position: relative;
+      padding-bottom: 1rem;
+    }
+
+    .card-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 40px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border-radius: 3px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group.full { grid-column: 1 / -1; }
+
+    .form-group label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.1);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .btn-primary {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, var(--primary) 0%, #159d72 100%);
+      color: #fff;
+      border: none;
+      padding: 13px;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-top: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(29, 158, 117, 0.3);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .alert-success {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #E1F5EE 0%, rgba(29, 158, 117, 0.1) 100%);
+      color: var(--primary);
+      border: 1.5px solid var(--primary-light);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      display: none;
+      animation: slideDown 0.4s ease;
+    }
+
+    .alert-success.show { display: block; }
+
+    .alert-error {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #FCEBEB 0%, rgba(226, 75, 74, 0.1) 100%);
+      color: var(--danger);
+      border: 1.5px solid #FCEBEB;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      display: none;
+      animation: slideDown 0.4s ease;
+    }
+
+    .alert-error.show { display: block; }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 2rem;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 300px;
+    }
+
+    .bar-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .bar-name {
+      font-size: 13px;
+      color: var(--text);
+      width: 110px;
+      text-align: right;
+      flex-shrink: 0;
+      font-weight: 500;
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 26px;
+      background: var(--bg);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, var(--primary), #159d72);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bar-fill span {
+      font-size: 12px;
+      color: #fff;
+      font-weight: 600;
+      font-family: 'DM Mono', monospace;
+      position: relative;
+      z-index: 1;
+    }
+
+    .region-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .region-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .region-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.5s ease;
+    }
+
+    .region-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .region-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .region-name {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+
+    .region-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .region-row strong { color: var(--text); font-weight: 600; }
+
+    .progress-bar {
+      height: 6px;
+      background: var(--bg);
+      border-radius: 4px;
+      margin-top: 1rem;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      background: linear-gradient(90deg, var(--primary), #159d72);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .pill-green { background: #E1F5EE; color: var(--primary); }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      border-bottom: 2px solid var(--border);
+      background: rgba(29, 158, 117, 0.02);
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tr:hover td {
+      background: var(--primary-light);
+    }
+
+    .export-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+
+    .btn-sec {
+      padding: 10px 18px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-sec:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .btn-danger {
+      padding: 10px 18px;
+      border: 1.5px solid var(--danger);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      background: var(--danger);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-danger:hover { opacity: 0.9; }
+
+    .btn-edit {
+      padding: 6px 12px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .btn-del {
+      padding: 6px 12px;
+      background: var(--danger);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    /* MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-content {
+      background: var(--surface);
+      padding: 2rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    @media print {
+      .sidebar, .topbar, .hamburger, .export-row, .btn-primary, .btn-sec, .modal {
+        display: none !important;
+      }
+      .content { padding: 0; }
+      .card { box-shadow: none; border: 1px solid #ccc; }
+    }
+
+    @media (max-width: 768px) {
+      .topbar { height: 56px; padding: 0.75rem 1rem; }
+      .main { height: calc(100vh - 56px); }
+      .content { padding: 1.5rem; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .stat-value { font-size: 24px; }
+      .live-badge { display: none; }
+      .modal-content { width: 95%; }
+    }
+
+    @media (max-width: 480px) {
+      .content { padding: 1rem; }
+      .stat-grid { grid-template-columns: 1fr; }
+      .card { padding: 1.25rem; }
+      .form-group input, .form-group select, .form-group textarea { font-size: 16px; }
+    }
+  </style>
 </head>
 <body>
-<!-- Ancienne version restaurée -->
-<!-- CODE ORIGINEL COMPLET récupéré depuis commit 566cde58455507b11c26f840f97458ef6e36e79f -->
 
-<!-- (le code HTML complet est en place ici, récupéré fidèlement depuis ce commit, voir le dépôt pour retrouver l'intégralité) -->
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">📚</div>
+      <div class="brand-name">CensoTech</div>
+      <div class="brand-sub">Recensement Éducatif Cameroun</div>
+      <div class="year-badge">2025/2026</div>
+    </div>
+
+    <nav style="display: flex; flex-direction: column; gap: 4px;">
+      <button class="nav-item active" onclick="goTo('accueil', this)">
+        <span class="nav-icon">🏠</span> Accueil
+      </button>
+      <button class="nav-item" onclick="goTo('collecte', this)">
+        <span class="nav-icon">📋</span> Collecte
+      </button>
+      <button class="nav-item" onclick="goTo('stats', this)">
+        <span class="nav-icon">📊</span> Statistiques
+      </button>
+      <button class="nav-item" onclick="goTo('regions', this)">
+        <span class="nav-icon">🗺️</span> Régions
+      </button>
+      <button class="nav-item" onclick="goTo('donnees', this)">
+        <span class="nav-icon">🗂️</span> Données
+      </button>
+      <button class="nav-item" onclick="goTo('export', this)">
+        <span class="nav-icon">📤</span> Export
+      </button>
+      <button class="nav-item" onclick="openAdminModal()">
+        <span class="nav-icon">🔐</span> Admin
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      KAMGAING FOTSO Herman G.<br>
+      <strong>Matricule :</strong> 24H2030<br>
+      <strong>UE :</strong> INF232<br>
+      <strong>Année :</strong> 2025/2026
+      <div class="copyright" style="margin-top: 1rem; font-size: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+        © 2026 CensoTech Cameroun
+      </div>
+    </div>
+  </aside>
+
+  <div class="drawer-overlay" id="overlay" onclick="closeMobileMenu()"></div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="topbar-title" id="page-title">🏠 Tableau de bord</div>
+      </div>
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        <span>En direct</span>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- ACCUEIL -->
+      <div id="sec-accueil" class="section active">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">📚 Écoles</div>
+            <div class="stat-value" id="kpi-ecoles">—</div>
+            <div class="stat-delta">Total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">👨‍🏫 Enseignants</div>
+            <div class="stat-value" id="kpi-ens">—</div>
+            <div class="stat-delta">Total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">👨‍🎓 Élèves</div>
+            <div class="stat-value" id="kpi-eleves">—</div>
+            <div class="stat-delta">Total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">🗺️ Régions</div>
+            <div class="stat-value" id="kpi-regions">0/10</div>
+            <div class="stat-delta">Couvertes</div>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="card">
+            <div class="card-title">📈 Écoles par région</div>
+            <div class="bar-list" id="bar-regions">
+              <p style="color: var(--muted); text-align: center; padding: 2rem;">Envoyez des fiches 📊</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">🎯 Besoins signalés</div>
+            <div class="bar-list" id="bar-besoins">
+              <p style="color: var(--muted); text-align: center; padding: 2rem;">Aucune donnée</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📋 Indicateurs</div>
+          <div class="stat-grid" style="margin:0;">
+            <div class="stat-card">
+              <div class="stat-label">Ratio élèves/ens</div>
+              <div class="stat-value" id="indicator-ratio">—</div>
+              <div class="stat-delta">Info</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">% Eau potable</div>
+              <div class="stat-value" id="indicator-eau">—</div>
+              <div class="stat-delta warn">Objectif: 100%</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">% Électrifiées</div>
+              <div class="stat-value" id="indicator-elec">—</div>
+              <div class="stat-delta warn">Objectif: 100%</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">% Latrines</div>
+              <div class="stat-value" id="indicator-latrines">—</div>
+              <div class="stat-delta warn">Objectif: 100%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLLECTE -->
+      <div id="sec-collecte" class="section">
+        <div class="card">
+          <div class="card-title">📋 Nouvelle fiche</div>
+          <div class="form-grid" id="form-collecte">
+            <div class="form-group">
+              <label>Région*</label>
+              <select id="region" required>
+                <option value="">Sélectionner...</option>
+                <option value="Adamaoua">Adamaoua</option>
+                <option value="Centre">Centre</option>
+                <option value="Est">Est</option>
+                <option value="Extrême-Nord">Extrême-Nord</option>
+                <option value="Littoral">Littoral</option>
+                <option value="Nord">Nord</option>
+                <option value="Nord-Ouest">Nord-Ouest</option>
+                <option value="Ouest">Ouest</option>
+                <option value="Sud">Sud</option>
+                <option value="Sud-Ouest">Sud-Ouest</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Établissement*</label>
+              <input type="text" id="nom-ecole" placeholder="Ex: Lycée de Yaoundé" required />
+            </div>
+            <div class="form-group">
+              <label>Élèves</label>
+              <input type="number" id="nb-eleves" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Enseignants</label>
+              <input type="number" id="nb-enseignants" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Type</label>
+              <select id="type-etab">
+                <option value="">Sélectionner...</option>
+                <option value="Primaire">Primaire</option>
+                <option value="Secondaire">Secondaire</option>
+                <option value="Technique">Technique</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Statut</label>
+              <select id="statut">
+                <option value="">Sélectionner...</option>
+                <option value="Public">Public</option>
+                <option value="Privé">Privé</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Eau potable?</label>
+              <select id="eau">
+                <option value="">Sélectionner...</option>
+                <option value="Oui">Oui</option>
+                <option value="Partiellement">Partiellement</option>
+                <option value="Non">Non</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Électricité?</label>
+              <select id="elec">
+                <option value="">Sélectionner...</option>
+                <option value="Oui">Oui</option>
+                <option value="Partiellement">Partiellement</option>
+                <option value="Non">Non</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Latrines?</label>
+              <select id="latrines">
+                <option value="">Sélectionner...</option>
+                <option value="Oui">Oui</option>
+                <option value="Partiellement">Partiellement</option>
+                <option value="Non">Non</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Salles classe</label>
+              <input type="number" id="nb-salles" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Bureaux</label>
+              <input type="number" id="nb-bureaux" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Internet?</label>
+              <select id="internet">
+                <option value="">Sélectionner...</option>
+                <option value="Oui">Oui</option>
+                <option value="Non">Non</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>Besoins</label>
+              <textarea id="besoins" placeholder="Manque de pupitres, électricité..."></textarea>
+            </div>
+            <div class="form-group full">
+              <label>Observations</label>
+              <textarea id="observations" placeholder="Remarques..."></textarea>
+            </div>
+            <div class="alert-success" id="alert-success">✅ Fiche enregistrée!</div>
+            <div class="alert-error" id="alert-error">❌ Erreur: <span id="error-msg"></span></div>
+            <button class="btn-primary" onclick="submitForm()">💾 Enregistrer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div id="sec-stats" class="section">
+        <div class="card">
+          <div class="card-title">📊 Indicateurs</div>
+          <div class="stat-grid" style="margin:0;">
+            <div class="stat-card">
+              <div class="stat-label">Ratio élèves/ens</div>
+              <div class="stat-value" id="stat-ratio">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">% Eau</div>
+              <div class="stat-value" id="stat-eau">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">% Électricité</div>
+              <div class="stat-value" id="stat-elec">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">% Latrines</div>
+              <div class="stat-value" id="stat-latrines">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📈 Écoles par région</div>
+          <div class="chart-wrap">
+            <canvas id="regionChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🏢 Par type d'établissement</div>
+          <div class="chart-wrap">
+            <canvas id="typeChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- RÉGIONS -->
+      <div id="sec-regions" class="section">
+        <div class="region-grid" id="region-list"></div>
+      </div>
+
+      <!-- DONNÉES -->
+      <div id="sec-donnees" class="section">
+        <div class="card">
+          <div class="card-title">📂 Données enregistrées</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Région</th>
+                  <th>Établissement</th>
+                  <th>Type</th>
+                  <th>Élèves</th>
+                  <th>Enseignants</th>
+                  <th>Eau</th>
+                  <th>Électricité</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="data-tbody">
+                <tr><td colspan="8" style="text-align:center;">Aucune donnée</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPORT -->
+      <div id="sec-export" class="section">
+        <div class="card">
+          <div class="card-title">📤 Exporter</div>
+          <p style="margin-bottom:1.5rem;color:var(--muted);">Téléchargez vos données</p>
+          <div class="export-row">
+            <button class="btn-sec" onclick="exportCSV()">
+              <i class="fas fa-file-csv"></i> CSV
+            </button>
+            <button class="btn-sec" onclick="exportJSON()">
+              <i class="fas fa-file-code"></i> JSON
+            </button>
+            <button class="btn-sec" onclick="printReport()">
+              <i class="fas fa-print"></i> Imprimer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div id="adminModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>🔐 Admin</span>
+      <button class="close-btn" onclick="closeAdminModal()">&times;</button>
+    </div>
+    <div id="admin-login">
+      <div class="form-group full">
+        <label>Mot de passe</label>
+        <input type="password" id="admin-password" placeholder="admin" />
+      </div>
+      <button class="btn-primary" onclick="adminLogin()">Se connecter</button>
+    </div>
+    <div id="admin-panel" style="display:none;">
+      <button class="btn-sec" style="width:100%;margin-bottom:1rem;" onclick="showAdminData()">
+        <i class="fas fa-list"></i> Gérer données
+      </button>
+      <button class="btn-sec" style="width:100%;margin-bottom:1rem;" onclick="showAdminStats()">
+        <i class="fas fa-chart-pie"></i> Stats
+      </button>
+      <button class="btn-danger" style="width:100%;" onclick="adminLogout()">
+        <i class="fas fa-sign-out-alt"></i> Déconnecter
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>✏️ Modifier</span>
+      <button class="close-btn" onclick="closeEditModal()">&times;</button>
+    </div>
+    <div class="form-grid" id="edit-form" style="display:none;">
+      <input type="hidden" id="edit-id" />
+      <div class="form-group">
+        <label>Région</label>
+        <select id="edit-region">
+          <option value="Adamaoua">Adamaoua</option>
+          <option value="Centre">Centre</option>
+          <option value="Est">Est</option>
+          <option value="Extrême-Nord">Extrême-Nord</option>
+          <option value="Littoral">Littoral</option>
+          <option value="Nord">Nord</option>
+          <option value="Nord-Ouest">Nord-Ouest</option>
+          <option value="Ouest">Ouest</option>
+          <option value="Sud">Sud</option>
+          <option value="Sud-Ouest">Sud-Ouest</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Établissement</label>
+        <input type="text" id="edit-nom-ecole" />
+      </div>
+      <div class="form-group">
+        <label>Élèves</label>
+        <input type="number" id="edit-nb-eleves" min="0" />
+      </div>
+      <div class="form-group">
+        <label>Enseignants</label>
+        <input type="number" id="edit-nb-enseignants" min="0" />
+      </div>
+      <button class="btn-primary" onclick="saveEdit()">💾 Sauvegarder</button>
+      <button class="btn-sec" style="grid-column:1/-1;" onclick="closeEditModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN DATA MODAL -->
+<div id="adminDataModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>🗂️ Gestion données</span>
+      <button class="close-btn" onclick="closeAdminDataModal()">&times;</button>
+    </div>
+    <div class="table-wrap">
+      <table id="admin-data-table">
+        <thead>
+          <tr>
+            <th>Région</th>
+            <th>Établissement</th>
+            <th>Élèves</th>
+            <th>Enseignants</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="admin-data-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://fsmyjxcmjrbgzkyebpwn.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzbXlqeGNtanJiZ3preWVicHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NDk0NzcsImV4cCI6MjA5MzAyNTQ3N30.IZ8k-uw19KnNnLgyBmAFnv9nVw59EApmxkkxRGyUAbc';
+  
+  const { createClient } = supabase;
+  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let allData = [];
+  let adminAuthenticated = false;
+  let charts = {};
+
+  function goTo(section, element) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    
+    document.getElementById('sec-' + section).classList.add('active');
+    element.classList.add('active');
+    
+    const titles = {
+      'accueil': '🏠 Tableau de bord',
+      'collecte': '📋 Collecte',
+      'stats': '📊 Statistiques',
+      'regions': '🗺️ Régions',
+      'donnees': '🗂️ Données',
+      'export': '📤 Export'
+    };
+    
+    document.getElementById('page-title').textContent = titles[section] || 'CensoTech';
+    closeMobileMenu();
+
+    if (section === 'stats') {
+      setTimeout(() => updateCharts(), 100);
+    }
+  }
+
+  function toggleMobileMenu() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const hamburger = document.getElementById('hamburger');
+    
+    sidebar.classList.toggle('mobile-active');
+    overlay.classList.toggle('active');
+    hamburger.classList.toggle('active');
+  }
+
+  function closeMobileMenu() {
+    document.getElementById('sidebar').classList.remove('mobile-active');
+    document.getElementById('overlay').classList.remove('active');
+    document.getElementById('hamburger').classList.remove('active');
+  }
+
+  async function submitForm() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = '⏳ Envoi...';
+
+    try {
+      const form = {
+        region: document.getElementById('region').value,
+        nom_ecole: document.getElementById('nom-ecole').value,
+        type_etab: document.getElementById('type-etab').value,
+        statut: document.getElementById('statut').value,
+        nb_eleves: parseInt(document.getElementById('nb-eleves').value) || 0,
+        nb_enseignants: parseInt(document.getElementById('nb-enseignants').value) || 0,
+        nb_salles: parseInt(document.getElementById('nb-salles').value) || 0,
+        nb_bureaux: parseInt(document.getElementById('nb-bureaux').value) || 0,
+        eau: document.getElementById('eau').value,
+        electricite: document.getElementById('elec').value,
+        latrines: document.getElementById('latrines').value,
+        internet: document.getElementById('internet').value,
+        besoins: document.getElementById('besoins').value,
+        observations: document.getElementById('observations').value
+      };
+
+      if (!form.region || !form.nom_ecole) {
+        showAlert('error', 'Région et nom obligatoires');
+        btn.disabled = false;
+        btn.textContent = '💾 Enregistrer';
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from('fiches')
+        .insert([form])
+        .select();
+
+      if (error) throw new Error(error.message);
+
+      showAlert('success', '✅ Fiche enregistrée!');
+      
+      document.querySelectorAll('#form-collecte input, #form-collecte textarea, #form-collecte select').forEach(el => {
+        el.value = '';
+      });
+
+      setTimeout(() => loadData(), 1000);
+      
+    } catch (error) {
+      showAlert('error', error.message || 'Erreur');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '💾 Enregistrer';
+    }
+  }
+
+  function showAlert(type, message) {
+    const success = document.getElementById('alert-success');
+    const error = document.getElementById('alert-error');
+    
+    if (type === 'success') {
+      success.textContent = message;
+      success.classList.add('show');
+      setTimeout(() => success.classList.remove('show'), 3000);
+    } else {
+      document.getElementById('error-msg').textContent = message;
+      error.classList.add('show');
+      setTimeout(() => error.classList.remove('show'), 4000);
+    }
+  }
+
+  async function loadData() {
+    try {
+      const { data, error } = await supabaseClient
+        .from('fiches')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Erreur:', error);
+        return;
+      }
+
+      allData = data || [];
+      updateDashboard();
+      updateTable();
+      updateRegions();
+      updateStats();
+    } catch (error) {
+      console.error('Erreur chargement:', error);
+    }
+  }
+
+  function updateDashboard() {
+    const totalEcoles = allData.length;
+    const totalEleves = allData.reduce((sum, d) => sum + (d.nb_eleves || 0), 0);
+    const totalEnseignants = allData.reduce((sum, d) => sum + (d.nb_enseignants || 0), 0);
+    const uniqueRegions = new Set(allData.map(d => d.region)).size;
+
+    document.getElementById('kpi-ecoles').textContent = totalEcoles;
+    document.getElementById('kpi-eleves').textContent = totalEleves;
+    document.getElementById('kpi-ens').textContent = totalEnseignants;
+    document.getElementById('kpi-regions').textContent = `${uniqueRegions}/10`;
+
+    updateIndicators();
+    updateRegionBars();
+    updateNeedsBars();
+  }
+
+  function updateIndicators() {
+    const totalEcoles = allData.length;
+    const totalEleves = allData.reduce((sum, d) => sum + (d.nb_eleves || 0), 0);
+    const totalEnseignants = allData.reduce((sum, d) => sum + (d.nb_enseignants || 0), 0);
+
+    if (totalEnseignants > 0) {
+      const ratio = (totalEleves / totalEnseignants).toFixed(1);
+      document.getElementById('indicator-ratio').textContent = ratio;
+      document.getElementById('stat-ratio').textContent = ratio;
+    }
+
+    const eauCount = allData.filter(d => d.eau === 'Oui').length;
+    const eauPercent = totalEcoles > 0 ? ((eauCount / totalEcoles) * 100).toFixed(0) : 0;
+    document.getElementById('indicator-eau').textContent = eauPercent + '%';
+    document.getElementById('stat-eau').textContent = eauPercent + '%';
+
+    const elecCount = allData.filter(d => d.electricite === 'Oui').length;
+    const elecPercent = totalEcoles > 0 ? ((elecCount / totalEcoles) * 100).toFixed(0) : 0;
+    document.getElementById('indicator-elec').textContent = elecPercent + '%';
+    document.getElementById('stat-elec').textContent = elecPercent + '%';
+
+    const latrinesCount = allData.filter(d => d.latrines === 'Oui').length;
+    const latrinesPercent = totalEcoles > 0 ? ((latrinesCount / totalEcoles) * 100).toFixed(0) : 0;
+    document.getElementById('indicator-latrines').textContent = latrinesPercent + '%';
+    document.getElementById('stat-latrines').textContent = latrinesPercent + '%';
+  }
+
+  function updateRegionBars() {
+    const regionCounts = {};
+    allData.forEach(d => {
+      regionCounts[d.region] = (regionCounts[d.region] || 0) + 1;
+    });
+
+    const sorted = Object.entries(regionCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const maxCount = Math.max(...sorted.map(([_, count]) => count), 1);
+    const barRegions = document.getElementById('bar-regions');
+
+    if (sorted.length === 0) {
+      barRegions.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 2rem;">Aucune donnée</p>';
+      return;
+    }
+
+    barRegions.innerHTML = sorted.map(([region, count]) => `
+      <div class="bar-row">
+        <div class="bar-name">${region}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width: ${(count / maxCount) * 100}%">
+            <span>${count}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function updateNeedsBars() {
+    const needsCounts = {};
+    allData.forEach(d => {
+      if (d.besoins) {
+        d.besoins.split(',').forEach(need => {
+          const clean = need.trim();
+          if (clean) needsCounts[clean] = (needsCounts[clean] || 0) + 1;
+        });
+      }
+    });
+
+    const sorted = Object.entries(needsCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const barBesoins = document.getElementById('bar-besoins');
+
+    if (sorted.length === 0) {
+      barBesoins.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 2rem;">Aucune donnée</p>';
+      return;
+    }
+
+    const maxCount = Math.max(...sorted.map(([_, count]) => count), 1);
+    barBesoins.innerHTML = sorted.map(([need, count]) => `
+      <div class="bar-row">
+        <div class="bar-name">${need}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width: ${(count / maxCount) * 100}%">
+            <span>${count}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function updateTable() {
+    const tbody = document.getElementById('data-tbody');
+    
+    if (allData.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Aucune donnée</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = allData.map(d => `
+      <tr>
+        <td><span class="pill pill-green">${d.region}</span></td>
+        <td>${d.nom_ecole}</td>
+        <td>${d.type_etab || '-'}</td>
+        <td>${d.nb_eleves}</td>
+        <td>${d.nb_enseignants}</td>
+        <td>${d.eau || '-'}</td>
+        <td>${d.electricite || '-'}</td>
+        <td>${d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '-'}</td>
+      </tr>
+    `).join('');
+  }
+
+  function updateRegions() {
+    const regionList = document.getElementById('region-list');
+    const regionData = {};
+
+    allData.forEach(d => {
+      if (!regionData[d.region]) {
+        regionData[d.region] = { ecoles: 0, eleves: 0, enseignants: 0, eau: 0 };
+      }
+      regionData[d.region].ecoles += 1;
+      regionData[d.region].eleves += d.nb_eleves || 0;
+      regionData[d.region].enseignants += d.nb_enseignants || 0;
+      if (d.eau === 'Oui') regionData[d.region].eau += 1;
+    });
+
+    if (Object.keys(regionData).length === 0) {
+      regionList.innerHTML = '<p style="grid-column:1/-1;text-align:center;">Aucune donnée</p>';
+      return;
+    }
+
+    regionList.innerHTML = Object.entries(regionData)
+      .sort((a, b) => b[1].ecoles - a[1].ecoles)
+      .map(([region, data]) => `
+        <div class="region-card">
+          <div class="region-name">🗺️ ${region}</div>
+          <div class="region-row"><span>Écoles</span> <strong>${data.ecoles}</strong></div>
+          <div class="region-row"><span>Élèves</span> <strong>${data.eleves}</strong></div>
+          <div class="region-row"><span>Enseignants</span> <strong>${data.enseignants}</strong></div>
+          <div class="region-row"><span>Avec eau</span> <strong>${data.eau}/${data.ecoles}</strong></div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${Math.min((data.eau / data.ecoles) * 100, 100)}%"></div>
+          </div>
+        </div>
+      `).join('');
+  }
+
+  function updateStats() {
+    updateIndicators();
+  }
+
+  function updateCharts() {
+    const regionCounts = {};
+    const typeCounts = {};
+
+    allData.forEach(d => {
+      regionCounts[d.region] = (regionCounts[d.region] || 0) + 1;
+      if (d.type_etab) {
+        typeCounts[d.type_etab] = (typeCounts[d.type_etab] || 0) + 1;
+      }
+    });
+
+    const regionCtx = document.getElementById('regionChart');
+    if (regionCtx) {
+      if (charts.region) charts.region.destroy();
+      charts.region = new Chart(regionCtx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(regionCounts),
+          datasets: [{
+            label: 'Écoles',
+            data: Object.values(regionCounts),
+            backgroundColor: '#1D9E75',
+            borderColor: '#0F6E56',
+            borderWidth: 2,
+            borderRadius: 8
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    const typeCtx = document.getElementById('typeChart');
+    if (typeCtx) {
+      if (charts.type) charts.type.destroy();
+      charts.type = new Chart(typeCtx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(typeCounts),
+          datasets: [{
+            data: Object.values(typeCounts),
+            backgroundColor: ['#1D9E75', '#EF9F27', '#E24B4A', '#6B7280'],
+            borderColor: '#fff',
+            borderWidth: 2
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+      });
+    }
+  }
+
+  function openAdminModal() {
+    document.getElementById('adminModal').classList.add('active');
+  }
+
+  function closeAdminModal() {
+    document.getElementById('adminModal').classList.remove('active');
+    document.getElementById('admin-password').value = '';
+  }
+
+  function adminLogin() {
+    const password = document.getElementById('admin-password').value;
+    if (password === 'admin') {
+      adminAuthenticated = true;
+      document.getElementById('admin-login').style.display = 'none';
+      document.getElementById('admin-panel').style.display = 'block';
+    } else {
+      alert('❌ Mot de passe incorrect');
+    }
+  }
+
+  function adminLogout() {
+    adminAuthenticated = false;
+    closeAdminModal();
+  }
+
+  function showAdminData() {
+    if (!adminAuthenticated) return;
+    const tbody = document.getElementById('admin-data-tbody');
+    
+    tbody.innerHTML = allData.map(d => `
+      <tr>
+        <td>${d.region}</td>
+        <td>${d.nom_ecole}</td>
+        <td>${d.nb_eleves}</td>
+        <td>${d.nb_enseignants}</td>
+        <td>
+          <button class="btn-edit" onclick="editRecord(${d.id})">✏️</button>
+          <button class="btn-del" onclick="deleteRecord(${d.id})">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+
+    document.getElementById('adminDataModal').classList.add('active');
+  }
+
+  function editRecord(id) {
+    const record = allData.find(d => d.id === id);
+    if (!record) return;
+
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-region').value = record.region;
+    document.getElementById('edit-nom-ecole').value = record.nom_ecole;
+    document.getElementById('edit-nb-eleves').value = record.nb_eleves;
+    document.getElementById('edit-nb-enseignants').value = record.nb_enseignants;
+    document.getElementById('edit-form').style.display = 'grid';
+    document.getElementById('editModal').classList.add('active');
+  }
+
+  async function saveEdit() {
+    const id = parseInt(document.getElementById('edit-id').value);
+    const updates = {
+      region: document.getElementById('edit-region').value,
+      nom_ecole: document.getElementById('edit-nom-ecole').value,
+      nb_eleves: parseInt(document.getElementById('edit-nb-eleves').value) || 0,
+      nb_enseignants: parseInt(document.getElementById('edit-nb-enseignants').value) || 0
+    };
+
+    try {
+      const { error } = await supabaseClient
+        .from('fiches')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw new Error(error.message);
+      
+      alert('✅ Mis à jour');
+      closeEditModal();
+      await loadData();
+      showAdminData();
+    } catch (error) {
+      alert('❌ ' + error.message);
+    }
+  }
+
+  async function deleteRecord(id) {
+    if (!confirm('Supprimer?')) return;
+
+    try {
+      const { error } = await supabaseClient
+        .from('fiches')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw new Error(error.message);
+      
+      alert('✅ Supprimé');
+      await loadData();
+      showAdminData();
+    } catch (error) {
+      alert('❌ ' + error.message);
+    }
+  }
+
+  function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+  }
+
+  function closeAdminDataModal() {
+    document.getElementById('adminDataModal').classList.remove('active');
+  }
+
+  function showAdminStats() {
+    const total = allData.length;
+    const eleves = allData.reduce((s, d) => s + (d.nb_eleves || 0), 0);
+    const ens = allData.reduce((s, d) => s + (d.nb_enseignants || 0), 0);
+    const regions = new Set(allData.map(d => d.region)).size;
+    alert(`📊 STATS\n\nÉcoles: ${total}\nÉlèves: ${eleves}\nEnseignants: ${ens}\nRégions: ${regions}`);
+  }
+
+  function exportCSV() {
+    let csv = 'Région,Établissement,Type,Élèves,Enseignants,Eau,Électricité,Date\n';
+    allData.forEach(d => {
+      csv += `"${d.region}","${d.nom_ecole}","${d.type_etab || ''}",${d.nb_eleves},${d.nb_enseignants},"${d.eau || ''}","${d.electricite || ''}",${d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : ''}\n`;
+    });
+    downloadFile(csv, 'censotech.csv', 'text/csv');
+  }
+
+  function exportJSON() {
+    downloadFile(JSON.stringify(allData, null, 2), 'censotech.json', 'application/json');
+  }
+
+  function printReport() {
+    const total = allData.length;
+    const eleves = allData.reduce((s, d) => s + (d.nb_eleves || 0), 0);
+    const ens = allData.reduce((s, d) => s + (d.nb_enseignants || 0), 0);
+
+    let html = `
+      <html><head><title>Rapport CensoTech</title></head><body>
+      <h1>Rapport CensoTech 2025/2026</h1>
+      <p><strong>Écoles:</strong> ${total}</p>
+      <p><strong>Élèves:</strong> ${eleves}</p>
+      <p><strong>Enseignants:</strong> ${ens}</p>
+      <p><strong>Ratio:</strong> ${ens > 0 ? (eleves / ens).toFixed(1) : '-'}</p>
+      <table border="1" style="width:100%;margin-top:2rem;">
+        <tr>
+          <th>Région</th><th>Établissement</th><th>Type</th><th>Élèves</th><th>Enseignants</th><th>Eau</th><th>Électricité</th>
+        </tr>
+        ${allData.map(d => `<tr>
+          <td>${d.region}</td><td>${d.nom_ecole}</td><td>${d.type_etab || '-'}</td><td>${d.nb_eleves}</td><td>${d.nb_enseignants}</td><td>${d.eau || '-'}</td><td>${d.electricite || '-'}</td>
+        </tr>`).join('')}
+      </table>
+      </body></html>
+    `;
+    const w = window.open();
+    w.document.write(html);
+    w.print();
+  }
+
+  function downloadFile(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  console.log('🚀 CensoTech');
+  loadData();
+  setInterval(loadData, 30000);
+
+  document.getElementById('adminModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAdminModal();
+  });
+  document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) closeEditModal();
+  });
+  document.getElementById('adminDataModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAdminDataModal();
+  });
+</script>
 
 </body>
 </html>
